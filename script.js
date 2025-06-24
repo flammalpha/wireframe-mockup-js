@@ -3,40 +3,47 @@ let selectedElemId = null;
 let lockedElems = new Set();
 let dragElemId = null;
 let classStyles = {};
+let selectedClassName = null;
 
 // --- History Stacks ---
 let historyStack = [];
 let futureStack = [];
 function pushHistory() {
-    historyStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems)]));
-    if (historyStack.length > 64) historyStack = historyStack.slice(-64); // Limit history
+    historyStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems), { ...classStyles }, selectedClassName]));
+    if (historyStack.length > 64) historyStack = historyStack.slice(-64);
     futureStack = [];
     updateUndoRedoBtns();
 }
 function undoAction() {
     if (!historyStack.length) return;
-    futureStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems)]));
+    futureStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems), { ...classStyles }, selectedClassName]));
     let prev = historyStack.pop();
-    let [lay, sel, locks] = JSON.parse(prev);
+    let [lay, sel, locks, classes, selClass] = JSON.parse(prev);
     layout = lay;
     selectedElemId = sel;
     lockedElems = new Set(locks);
+    classStyles = classes || {};
+    selectedClassName = selClass || null;
     render();
     updatePropsForm();
     updateUndoRedoBtns();
+    renderClassEditor();
     showNotif('Undo');
 }
 function redoAction() {
     if (!futureStack.length) return;
-    historyStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems)]));
+    historyStack.push(JSON.stringify([layout, selectedElemId, Array.from(lockedElems), { ...classStyles }, selectedClassName]));
     let next = futureStack.pop();
-    let [lay, sel, locks] = JSON.parse(next);
+    let [lay, sel, locks, classes, selClass] = JSON.parse(next);
     layout = lay;
     selectedElemId = sel;
     lockedElems = new Set(locks);
+    classStyles = classes || {};
+    selectedClassName = selClass || null;
     render();
     updatePropsForm();
     updateUndoRedoBtns();
+    renderClassEditor();
     showNotif('Redo');
 }
 function updateUndoRedoBtns() {
@@ -56,7 +63,6 @@ function showNotif(msg) {
 // --- Copy/Paste ---
 let clipboardElem = null;
 window.addEventListener('keydown', function (e) {
-    // Only work if not editing a text input
     let a = document.activeElement;
     if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA")) return;
     if (e.ctrlKey && e.key === 'z') { undoAction(); e.preventDefault(); }
@@ -65,7 +71,6 @@ window.addEventListener('keydown', function (e) {
     if (e.ctrlKey && e.key === 'v') { doPaste(); e.preventDefault(); }
 });
 function cloneElem(obj) {
-    // deep clone but new unique id!
     let newObj = JSON.parse(JSON.stringify(obj));
     function assignNewIds(o) {
         o.id = 'e' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
@@ -85,10 +90,8 @@ function doPaste() {
     if (!clipboardElem) { showNotif('Clipboard empty'); return; }
     if (!selectedElemId) { showNotif('Select parent!'); return; }
     let parent = findParent(layout, selectedElemId);
-    // If root or not found, paste at root
     if (!parent || selectedElemId === 'root') parent = layout;
     let idx = parent.children.findIndex(c => c.id === selectedElemId);
-    // Deep clone with new ids
     let newElemObj = cloneElem(clipboardElem);
     pushHistory();
     parent.children.splice(idx + 1, 0, newElemObj);
@@ -98,11 +101,12 @@ function doPaste() {
     showNotif('Pasted!');
 }
 
-// -- Render wireframe --
+// --- Render wireframe (calls renderClassEditor) ---
 function render() {
     let area = document.getElementById('mockup-area');
     area.innerHTML = '';
     renderElem(layout, area);
+    renderClassEditor();
 }
 function renderElem(obj, parent) {
     let elem;
@@ -144,7 +148,6 @@ function renderElem(obj, parent) {
     let locked = isElemLockedOrAncestorLocked(obj.id);
     if (locked) elem.style.opacity = '0.4';
 
-    // Drag logic
     elem.setAttribute('draggable', locked ? 'false' : 'true');
     elem.ondragstart = (e) => {
         dragElemId = obj.id;
@@ -153,7 +156,6 @@ function renderElem(obj, parent) {
     elem.ondragover = e => e.preventDefault();
     elem.ondrop = e => handleDrop(e, obj);
 
-    // Selection
     elem.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -164,7 +166,6 @@ function renderElem(obj, parent) {
             selectElem(obj.id);
         }
     };
-    // Context menu on right-click
     elem.oncontextmenu = function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -175,7 +176,6 @@ function renderElem(obj, parent) {
             showCtxMenuUnlocked(e.pageX, e.pageY, obj.id);
     }
 
-    // Recursion for containers
     if ((obj.type === 'container' || obj.id === 'root') && obj.children) {
         for (let child of obj.children) {
             renderElem(child, elem);
@@ -196,7 +196,6 @@ function moveElem(childId, newParentId) {
     render();
 }
 
-// Remove an element by id from layout and return it
 function removeElem(obj, childId) {
     if (!obj.children) return null;
     let idx = obj.children.findIndex(c => c.id === childId);
@@ -223,7 +222,6 @@ function newElem(type) {
     return base;
 }
 
-// Returns parent of node with id
 function findParent(obj, id, parent = null) {
     if (obj.id === id) return parent;
     if (!obj.children) return null;
@@ -261,7 +259,6 @@ function handleDrop(e, obj) {
         render();
         updatePropsForm();
     }
-    // For dragging existing elements
     else if (dragElemId && dragElemId !== obj.id) {
         pushHistory();
         moveElem(dragElemId, obj.id);
@@ -302,7 +299,6 @@ function styleObjToString(st) {
         .map(([k, v]) => `${k}:${v}`).join(';');
 }
 function updatePropsForm() {
-    // --- Save focus ---
     let active = document.activeElement, fieldInfo = null;
     if (active && active.tagName === 'INPUT') {
         fieldInfo = {
@@ -311,25 +307,21 @@ function updatePropsForm() {
             selectionEnd: active.selectionEnd
         };
     }
-
     let form = document.getElementById('properties-form');
     let obj = selectedElemId ? findElem(layout, selectedElemId) : null;
     const isLocked = obj && lockedElems.has(selectedElemId);
 
-    // --- Breadcrumb title ---
     let breadcrumb = obj ? 'Properties: ' + getBreadcrumbPath(selectedElemId) : 'Properties';
-    let title = '<div id="propTitle" style="font-weight:bold;font-size:16px;margin-bottom:10px;">' +
+    let title = '<div id="propTitle">' +
         breadcrumb +
         '</div>';
 
-    // --- Main fields
     let fields = '';
     if (!selectedElemId || !obj) {
         form.innerHTML = title;
         return;
     }
 
-    // Main editable props per type (text content, href, src etc)
     const disabledAttr = isLocked ? 'disabled' : '';
     if (obj.type === 'text' || obj.type === 'button' || obj.type === 'link') {
         fields += `<label>Text: <input type="text" name="text" value="${obj.props.text || ''} ${disabledAttr}"></label>`;
@@ -340,23 +332,19 @@ function updatePropsForm() {
     if (obj.type === 'link') {
         fields += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''} ${disabledAttr}"></label>`;
     }
-    // Add Classes property for all elements except root
     if (obj.id !== 'root') {
-        fields += `<label style="margin-left:12px;">
-            Class(es): <input type="text" name="class" value="${obj.props.class || ''}" ${disabledAttr} 
-            title="Space separated classes (global styles)">
-            </label>`;
-        fields += `<button type="button" id="editClassStyles" style="margin-left:6px;" ${disabledAttr}>Edit Class Styles</button>`;
+        fields += `<div style="margin:7px 0 7px 0;font-size:13px;">
+            <b>Classes:</b>
+            <span id="classesCheckboxes"></span>
+            </div>`;
     }
 
-    // Style controls
     let st = styleStringToObj(obj.props.style);
     fields += `<div>
         <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
         <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''} ${disabledAttr}>Italic</label>
         <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''} ${disabledAttr}>Underline</label>
     </div>`;
-
     fields += `<div style="margin:7px 0;">
         <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px" ${disabledAttr}> px</label>
         <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}" ${disabledAttr}></label>
@@ -373,23 +361,32 @@ function updatePropsForm() {
     </div>
     `;
 
-    // --- Set the full form with title at the top
     form.innerHTML = title + fields;
 
-    // Only enable editing when not locked
+    // Render available class checkboxes
+    if (obj.id !== 'root') {
+        const checkboxes = [];
+        const allClasses = Object.keys(classStyles);
+        const elementClasses = (obj.props.class || '').split(/\s+/).filter(Boolean);
+        for (const cname of allClasses) {
+            const checked = elementClasses.includes(cname) ? 'checked' : '';
+            checkboxes.push(
+                `<label style="margin-right:10px;">
+                  <input type="checkbox" name="clsbox" value="${cname}" ${checked} ${isLocked ? 'disabled' : ''}>${cname}
+                </label>`
+            );
+        }
+        form.querySelector("#classesCheckboxes").innerHTML = checkboxes.join('');
+    }
     if (!isLocked) {
-        // --- Hook up input events as before
         form.oninput = function (e) {
-            // Use form.querySelector instead of form.fieldName, as form is a div now
             let get = n => form.querySelector(`[name="${n}"]`);
             let styleObj = styleStringToObj(obj.props.style);
 
-            // Update boolean styles
             styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
             styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
             styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
 
-            // Update value-based styles
             styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
             styleObj['color'] = get('color')?.value || '';
             styleObj['background-color'] = get('bgColor')?.value || '';
@@ -401,12 +398,20 @@ function updatePropsForm() {
 
             obj.props.style = styleObjToString(styleObj);
 
-            // handle text/href/src
             if (get('text')) obj.props.text = get('text').value;
             if (get('href')) obj.props.href = get('href').value;
             if (get('src')) obj.props.src = get('src').value;
             if (get('class')) obj.props.class = get('class').value.trim();
 
+            // Handle class assignment checkbox
+            if (e.target.name === "clsbox") {
+                let checked = Array.from(form.querySelectorAll('[name="clsbox"]:checked')).map(x => x.value);
+                obj.props.class = checked.join(' ');
+                pushHistory();
+                render();
+                updatePropsForm();
+                return;
+            }
             pushHistory();
             render();
             updatePropsForm();
@@ -415,7 +420,6 @@ function updatePropsForm() {
         form.oninput = null;
     }
 
-    // --- Restore focus ---
     if (fieldInfo) {
         let toFocus = form.querySelector(`[name="${fieldInfo.name}"]`);
         if (toFocus) {
@@ -436,7 +440,6 @@ function updatePropsForm() {
 
 // --- Merge class-based styles with element styles on render ---
 function getMergedStyle(obj) {
-    // 1. Class styles (multiple classes, merged in order)
     let cs = {};
     if (obj.props && obj.props.class) {
         let cList = obj.props.class.trim().split(/\s+/);
@@ -444,37 +447,165 @@ function getMergedStyle(obj) {
             Object.assign(cs, styleStringToObj(classStyles[c] || ''));
         }
     }
-    // 2. Inline style overrides class
     let inline = styleStringToObj(obj.props?.style);
     Object.assign(cs, inline);
     return styleObjToString(cs);
 }
 
-// --- Simple Class Style Editor Modal ---
-function showClassStyleEditor(className) {
-    if (!className) {
-        showNotif('Enter a class name first!');
+// --- New: Class Editor section in right bar (Modern version with selection) ---
+function renderClassEditor() {
+    const ul = document.getElementById('classList');
+    if (!ul) return;
+    const classNames = Object.keys(classStyles);
+    ul.innerHTML = "";
+
+    // --- Add header and class creation UI at the top ---
+    const topDiv = document.createElement('div');
+    topDiv.innerHTML = `
+        <div style="font-weight:bold; font-size:15px; margin-bottom:8px;">Global Classes</div>
+        <input type="text" id="globalAddClassInput" style="width:100px;font-size:13px;margin-right:6px;" placeholder="New class">
+        <button id="globalAddClassBtn" type="button" style="font-size:13px;">Add Class</button>
+        <span id="addClassError" style="color:#c00;font-size:13px;display:none;margin-left:10px;"></span>
+        <hr style="margin:10px 0;">
+    `;
+    ul.appendChild(topDiv);
+
+    // --- List of class names as selectable ---
+    classNames.forEach(cname => {
+        const li = document.createElement('li');
+        li.style.marginBottom = "10px";
+        li.innerHTML = `
+          <button type="button" class="selectClassBtn" data-cls="${cname}" style="background:${selectedClassName === cname ? '#def' : '#eee'};margin-right:7px;">${cname}</button>
+          <button type="button" class="delClassBtn" data-cls="${cname}" style="color:#a00;">✖</button>
+        `;
+        ul.appendChild(li);
+    });
+
+    setTimeout(() => {
+        document.querySelectorAll(".selectClassBtn").forEach(btn => {
+            btn.onclick = () => {
+                selectedClassName = btn.dataset.cls;
+                renderClassEditor();
+                renderClassPropertiesForm();
+            };
+        });
+        // --- AddClass logic ---
+        const btn = document.getElementById('globalAddClassBtn');
+        const input = document.getElementById('globalAddClassInput');
+        const error = document.getElementById('addClassError');
+        if (btn && input) {
+            btn.onclick = function () {
+                const cname = (input.value || '').trim();
+                if (!cname.match(/^[\w\-]+$/)) {
+                    error.textContent = 'Invalid class name!';
+                    error.style.display = 'inline';
+                    return;
+                }
+                if (!cname) return;
+                if (classStyles[cname]) {
+                    error.textContent = 'Class exists!';
+                    error.style.display = 'inline';
+                    return;
+                }
+                classStyles[cname] = '';
+                input.value = '';
+                error.style.display = 'none';
+                pushHistory();
+                render();
+                renderClassEditor();
+            };
+            input.oninput = () => { error.style.display = 'none'; };
+            input.onkeydown = function (e) {
+                if (e.key === "Enter") btn.click();
+            }
+        }
+    }, 10);
+
+    document.getElementById("classList").onclick = function (e) {
+        if (e.target.classList.contains("delClassBtn")) {
+            const cname = e.target.dataset.cls;
+            delete classStyles[cname];
+            traverseElems(layout, (eobj) => {
+                if (eobj.props && eobj.props.class) {
+                    let arr = eobj.props.class.split(/\s+/).filter(x => x && x !== cname);
+                    if (arr.length !== eobj.props.class.split(/\s+/).length)
+                        eobj.props.class = arr.join(' ');
+                }
+            });
+            if (selectedClassName === cname) selectedClassName = null;
+            pushHistory();
+            render();
+            updatePropsForm();
+            renderClassEditor();
+            renderClassPropertiesForm();
+        }
+    };
+
+    // --- Render class property form for the selected class
+    renderClassPropertiesForm();
+}
+
+function renderClassPropertiesForm() {
+    let form = document.getElementById('classPropertiesEditor');
+    if (!form) return;
+    
+    let html = `<div id="classTitle">Class Properties` + (selectedClassName ? `: <b>.${selectedClassName}</b>` : ``) + `</div>`
+    if (!selectedClassName || !(selectedClassName in classStyles)) {
+        form.innerHTML = html;
+        form.oninput = null;
         return;
     }
-    let currStyle = classStyles[className] || '';
-    let modal = document.createElement('div');
-    modal.style = "position:fixed;top:30%;left:50%;transform:translate(-50%,-30%);background:#fff;padding:20px;z-index:9999;border: 2px solid #bbb;";
-    modal.innerHTML = `
-        <h3>Edit Style for class: <span style="color:#007">${className}</span></h3>
-        <textarea id="classStyleBox" style="width:300px;height:70px;">${currStyle}</textarea><br>
-        <button id="clsSaveBtn">Save</button>
-        <button id="clsCancelBtn">Cancel</button>`;
-    document.body.appendChild(modal);
-    document.getElementById('classStyleBox').focus();
 
-    modal.querySelector('#clsSaveBtn').onclick = function () {
-        classStyles[className] = document.getElementById('classStyleBox').value.trim();
-        document.body.removeChild(modal);
+    let st = styleStringToObj(classStyles[selectedClassName]);
+    html += `<div>
+        <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''}>Bold</label>
+        <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''}>Italic</label>
+        <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''}>Underline</label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px"> px</label>
+        <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}"></label>
+        <label style="margin-left:15px;">BG color: <input type="color" name="bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}"></label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Width: <input type="number" name="width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px"> px</label>
+        <label style="margin-left:13px;">Height: <input type="number" name="height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px"> px</label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Margin: <input type="number" name="margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px"> px</label>
+        <label style="margin-left:15px;">Padding: <input type="number" name="padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px"> px</label>
+        <label style="margin-left:15px;">Border: <input type="text" name="border" value="${st['border'] || ''}" style="width:90px"></label>
+    </div>
+    `;
+
+    form.innerHTML = html;
+
+    form.oninput = function (e) {
+        let get = n => form.querySelector(`[name="${n}"]`);
+        let styleObj = styleStringToObj(classStyles[selectedClassName]);
+        styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
+        styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
+        styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
+        styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
+        styleObj['color'] = get('color')?.value || '';
+        styleObj['background-color'] = get('bgColor')?.value || '';
+        styleObj['width'] = get('width')?.value ? (get('width').value + 'px') : '';
+        styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
+        styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
+        styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
+        styleObj['border'] = get('border')?.value || '';
+        classStyles[selectedClassName] = styleObjToString(styleObj);
+        pushHistory();
         render();
+        renderClassEditor();
     };
-    modal.querySelector('#clsCancelBtn').onclick = function () {
-        document.body.removeChild(modal);
-    };
+}
+
+function traverseElems(obj, cb) {
+    cb(obj);
+    if (obj.children) {
+        obj.children.forEach(child => traverseElems(child, cb));
+    }
 }
 
 // --- Context Menu ---
@@ -571,11 +702,9 @@ document.getElementById('importBox').addEventListener('keydown', function (ev) {
 // --- Startup
 render();
 document.getElementById("mockup-area").addEventListener("click", function (e) {
-    // Check if a link (or inside a link) was clicked
     const link = e.target.closest("a");
     if (link) {
-        e.preventDefault();    // Prevent navigation/refresh
-        // Optionally, show a tooltip or notification here
+        e.preventDefault();
     }
     selectedElemId = null;
     render();
@@ -583,3 +712,4 @@ document.getElementById("mockup-area").addEventListener("click", function (e) {
 });
 pushHistory();
 updateUndoRedoBtns();
+renderClassEditor();
