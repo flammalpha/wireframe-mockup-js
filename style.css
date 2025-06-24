@@ -1,0 +1,119 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+    background: #fafafc;
+}
+
+#app-container {
+    display: flex;
+    height: 100vh;
+}
+
+#sidebar {
+    width: 160px;
+    background: #f0f0f0;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid #ccc;
+}
+
+#toolbox {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.tool {
+    border: 1px dashed #aaa;
+    padding: 10px;
+    text-align: center;
+    background: #fff;
+    cursor: grab;
+}
+
+#exportImport {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+#main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+#mockup-area {
+    flex: 1;
+    background: #fff;
+    position: relative;
+    min-height: 0;
+    padding: 10px;
+    overflow: auto;
+    border-bottom: 1px solid #ccc;
+}
+
+.wire-elem {
+    position: relative;
+    min-width: 40px;
+    min-height: 22px;
+    border: 2px dashed #bbb;
+    padding: 6px 12px;
+    margin: 5px;
+    cursor: move;
+    background: rgba(255, 255, 255, 0.8)
+}
+
+.selected {
+    border: 2px solid #2b9af3;
+    background: #e0f2ff;
+}
+
+.context-menu {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #aaa;
+    z-index: 10000;
+    box-shadow: 1px 2px 4px #bbb;
+    display: none;
+    font-size: 14px;
+}
+
+.context-menu li {
+    list-style: none;
+    padding: 5px 15px;
+    cursor: pointer;
+}
+
+.context-menu li:hover {
+    background: #f0f0ff;
+}
+
+#properties-bar {
+    height: 110px;
+    background: #fcfbf8;
+    border-top: 1px solid #ccc;
+    padding: 7px 15px;
+    font-size: 15px;
+}
+
+#properties-form label {
+    margin-right: 13px;
+}
+
+#properties-form input[type="text"] {
+    width: 90px;
+    margin-left: 3px;
+}
+
+#importBox {
+    width: 135px;
+    height: 40px;
+    display: none;
+}
