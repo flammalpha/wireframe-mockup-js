@@ -136,10 +136,11 @@ function renderElem(obj, parent) {
 
     elem.dataset.id = obj.id;
     if (obj.id === selectedElemId) elem.classList.add('selected');
-    if (lockedElems.has(obj.id)) elem.style.opacity = '0.4';
+    let locked = isElemLockedOrAncestorLocked(obj.id);
+    if (locked) elem.style.opacity = '0.4';
 
     // Drag logic
-    elem.setAttribute('draggable', lockedElems.has(obj.id) ? 'false' : 'true');
+    elem.setAttribute('draggable', locked ? 'false' : 'true');
     elem.ondragstart = (e) => {
         dragElemId = obj.id;
         e.stopPropagation();
@@ -151,14 +152,20 @@ function renderElem(obj, parent) {
     elem.onclick = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        selectElem(obj.id);
+        const topLocked = getTopmostLockedAncestor(obj.id);
+        if (topLocked) {
+            selectElem(topLocked);
+        } else {
+            selectElem(obj.id);
+        }
     };
     // Context menu on right-click
     elem.oncontextmenu = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (lockedElems.has(obj.id))
-            showCtxMenuLocked(e.pageX, e.pageY, obj.id);
+        const topLocked = getTopmostLockedAncestor(obj.id);
+        if (topLocked)
+            showCtxMenuLocked(e.pageX, e.pageY, topLocked);
         else
             showCtxMenuUnlocked(e.pageX, e.pageY, obj.id);
     }
@@ -238,7 +245,7 @@ function selectElem(id) {
 function handleDrop(e, obj) {
     e.preventDefault();
     e.stopPropagation();
-    if (lockedElems.has(obj.id)) return;
+    if (isElemLockedOrAncestorLocked(obj.id)) return;
 
     let type = e.dataTransfer.getData("type");
     let isToolbox = !!type;
@@ -437,6 +444,23 @@ function hideCtxMenu() {
 }
 document.body.onclick = () => {
     hideCtxMenu();
+}
+function isElemLockedOrAncestorLocked(elemId) {
+    let curr = elemId;
+    while (curr) {
+        if (lockedElems.has(curr)) return true;
+        curr = findParent(layout, curr)?.id;
+    }
+    return false;
+}
+function getTopmostLockedAncestor(elemId) {
+    let curr = elemId;
+    let lastLocked = null;
+    while (curr) {
+        if (lockedElems.has(curr)) lastLocked = curr;
+        curr = findParent(layout, curr)?.id;
+    }
+    return lastLocked;
 }
 function lockSelected() {
     if (!selectedElemId) return;
