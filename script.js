@@ -329,7 +329,7 @@ function updatePropsForm() {
         fields += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''} ${disabledAttr}"></label>`;
     }
 
-    // Style controls (as before)
+    // Style controls
     let st = styleStringToObj(obj.props.style);
     fields += `<div>
         <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
@@ -395,7 +395,7 @@ function updatePropsForm() {
         form.oninput = null;
     }
 
-    // --- Restore focus (unchanged) ---
+    // --- Restore focus ---
     if (fieldInfo) {
         let toFocus = form.querySelector(`[name="${fieldInfo.name}"]`);
         if (toFocus) {
@@ -431,23 +431,26 @@ function showCtxMenuLocked(x, y, elemId) {
     selectedElemId = elemId;
     render();
 }
-document.body.onclick = () => {
+function hideCtxMenu() {
     document.getElementById('ctxMenuLocked').style.display = 'none';
     document.getElementById('ctxMenuUnlocked').style.display = 'none';
+}
+document.body.onclick = () => {
+    hideCtxMenu();
 }
 function lockSelected() {
     if (!selectedElemId) return;
     pushHistory();
     if (!lockedElems.has(selectedElemId)) lockedElems.add(selectedElemId);
     render();
-    document.getElementById('ctxMenuUnlocked').style.display = 'none';
+    hideCtxMenu();
 }
 function unlockSelected() {
     if (!selectedElemId) return;
     pushHistory();
     if (lockedElems.has(selectedElemId)) lockedElems.delete(selectedElemId);
     render();
-    document.getElementById('ctxMenuLocked').style.display = 'none';
+    hideCtxMenu();
 }
 function deleteSelected() {
     if (!selectedElemId) return;
@@ -457,7 +460,7 @@ function deleteSelected() {
     selectedElemId = null;
     render();
     updatePropsForm();
-    document.getElementById('ctxMenu').style.display = 'none';
+    hideCtxMenu();
 }
 
 // --- Export / Import ---
