@@ -17,17 +17,16 @@
             <span style="margin:0 22px 0 17px;color:#888;">|</span>
             <button onclick="exportLayout()">Export</button>
             <button onclick="showImportBox()">Import</button>
-            <textarea id="importBox" placeholder="Paste JSON..."
-                style="vertical-align:middle;display:none;margin-left:14px;"></textarea>
-            <button id="importApply" style="display:none;margin-left:2px;vertical-align:middle;">Apply</button>
+            <textarea id="importBox" placeholder="Paste JSON..."></textarea>
+            <button id="importApply">Apply</button>
             <span style="margin-left:32px;color:#888;">
-                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+Z</kbd> /
-                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+Y</kbd> /
-                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+C</kbd> /
-                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+V</kbd>
+                <kbd>Ctrl+Z</kbd> /
+                <kbd>Ctrl+Y</kbd> /
+                <kbd>Ctrl+C</kbd> /
+                <kbd>Ctrl+V</kbd>
             </span>
         </div>
-        <div style="display:flex; flex:1; min-height:0;">
+        <div id="main-flex-row">
             <div id="sidebar">
                 <div id="toolbox">
                     <div class="tool" draggable="true" data-type="text">Text</div>
@@ -38,27 +37,26 @@
                 </div>
             </div>
             <div id="main">
-                <div id="mockup-area">
-                </div>
-                <div id="properties-bar">
-                    <span style="font-weight: bold;" id="propTitle">Properties</span>
-                    <form id="properties-form" style="margin-top:10px;display:inline-block;">
-                        <div id="propTitle"></div>
-                        <!-- ...fields will be inserted here... -->
-                    </form>
-                </div>
+                <div id="mockup-area"></div>
             </div>
-            <!-- Context menu for elements -->
-            <ul class="context-menu" id="ctxMenuUnlocked">
-                <li onclick="copySelected()">Copy</li>
-                <li onclick="pasteSelected()">Paste</li>
-                <li onclick="lockSelected()">Lock</li>
-                <li onclick="deleteSelected()">Delete</li>
-            </ul>
-            <ul class="context-menu" id="ctxMenuLocked">
-                <li onclick="unlockSelected()">Unlock</li>
-            </ul>
         </div>
+        <div id="properties-bar">
+            <form id="properties-form">
+                <span id="propTitle">Properties</span>
+                <!-- ...fields will be inserted here... -->
+            </form>
+        </div>
+        <!-- Context menu for elements -->
+        <ul class="context-menu" id="ctxMenuUnlocked">
+            <li onclick="doCopy()">Copy</li>
+            <li onclick="doPaste()">Paste</li>
+            <li onclick="lockSelected()">Lock</li>
+            <li onclick="deleteSelected()">Delete</li>
+        </ul>
+        <ul class="context-menu" id="ctxMenuLocked">
+            <li onclick="unlockSelected()">Unlock</li>
+        </ul>
+    </div>
     </div>
 </body>
 

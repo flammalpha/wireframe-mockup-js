@@ -2,6 +2,7 @@ let layout = { id: 'root', type: 'container', children: [], props: { style: 'min
 let selectedElemId = null;
 let lockedElems = new Set();
 let dragElemId = null;
+let classStyles = {};
 
 // --- History Stacks ---
 let historyStack = [];
@@ -111,20 +112,23 @@ function renderElem(obj, parent) {
         elem.style.position = 'relative';
         elem.innerHTML = (obj.id === 'root') ? '<b style="font-size:20px;color:#bbb;">(Root Layout)</b>'
             : '<span style="color:#888;">Container</span>';
-        if (obj.props && obj.props.style) elem.setAttribute('style', obj.props.style + ';position:relative;');
+        if (obj.props && obj.props.style) elem.setAttribute('style', getMergedStyle(obj) + ';position:relative;');
     } else if (obj.type === 'text') {
         elem = document.createElement('div');
         elem.className = 'wire-elem';
         elem.textContent = obj.props?.text || 'Text';
+        if (obj.props && obj.props.style) elem.setAttribute('style', getMergedStyle(obj));
     } else if (obj.type === 'button') {
         elem = document.createElement('button');
         elem.className = 'wire-elem';
         elem.textContent = obj.props?.text || 'Button';
+        if (obj.props && obj.props.style) elem.setAttribute('style', getMergedStyle(obj));
     } else if (obj.type === 'img') {
         elem = document.createElement('img');
         elem.className = 'wire-elem';
         elem.src = obj.props?.src || 'https://via.placeholder.com/80x40';
         elem.style.width = '80px'; elem.style.height = '40px';
+        if (obj.props && obj.props.style) elem.setAttribute('style', getMergedStyle(obj));
     } else if (obj.type === 'link') {
         elem = document.createElement('a');
         elem.className = 'wire-elem';
@@ -132,6 +136,7 @@ function renderElem(obj, parent) {
         elem.href = obj.props?.href || '#';
         elem.style.textDecoration = 'underline';
         elem.target = '_blank';
+        if (obj.props && obj.props.style) elem.setAttribute('style', getMergedStyle(obj));
     }
 
     elem.dataset.id = obj.id;
@@ -335,6 +340,14 @@ function updatePropsForm() {
     if (obj.type === 'link') {
         fields += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''} ${disabledAttr}"></label>`;
     }
+    // Add Classes property for all elements except root
+    if (obj.id !== 'root') {
+        fields += `<label style="margin-left:12px;">
+            Class(es): <input type="text" name="class" value="${obj.props.class || ''}" ${disabledAttr} 
+            title="Space separated classes (global styles)">
+            </label>`;
+        fields += `<button type="button" id="editClassStyles" style="margin-left:6px;" ${disabledAttr}>Edit Class Styles</button>`;
+    }
 
     // Style controls
     let st = styleStringToObj(obj.props.style);
@@ -367,7 +380,6 @@ function updatePropsForm() {
     if (!isLocked) {
         // --- Hook up input events as before
         form.oninput = function (e) {
-            // ... rest of function unchanged ...
             // Use form.querySelector instead of form.fieldName, as form is a div now
             let get = n => form.querySelector(`[name="${n}"]`);
             let styleObj = styleStringToObj(obj.props.style);
@@ -389,10 +401,11 @@ function updatePropsForm() {
 
             obj.props.style = styleObjToString(styleObj);
 
-            // Still handle text/href/src
+            // handle text/href/src
             if (get('text')) obj.props.text = get('text').value;
             if (get('href')) obj.props.href = get('href').value;
             if (get('src')) obj.props.src = get('src').value;
+            if (get('class')) obj.props.class = get('class').value.trim();
 
             pushHistory();
             render();
@@ -419,6 +432,49 @@ function updatePropsForm() {
             }
         }
     }
+}
+
+// --- Merge class-based styles with element styles on render ---
+function getMergedStyle(obj) {
+    // 1. Class styles (multiple classes, merged in order)
+    let cs = {};
+    if (obj.props && obj.props.class) {
+        let cList = obj.props.class.trim().split(/\s+/);
+        for (let c of cList) {
+            Object.assign(cs, styleStringToObj(classStyles[c] || ''));
+        }
+    }
+    // 2. Inline style overrides class
+    let inline = styleStringToObj(obj.props?.style);
+    Object.assign(cs, inline);
+    return styleObjToString(cs);
+}
+
+// --- Simple Class Style Editor Modal ---
+function showClassStyleEditor(className) {
+    if (!className) {
+        showNotif('Enter a class name first!');
+        return;
+    }
+    let currStyle = classStyles[className] || '';
+    let modal = document.createElement('div');
+    modal.style = "position:fixed;top:30%;left:50%;transform:translate(-50%,-30%);background:#fff;padding:20px;z-index:9999;border: 2px solid #bbb;";
+    modal.innerHTML = `
+        <h3>Edit Style for class: <span style="color:#007">${className}</span></h3>
+        <textarea id="classStyleBox" style="width:300px;height:70px;">${currStyle}</textarea><br>
+        <button id="clsSaveBtn">Save</button>
+        <button id="clsCancelBtn">Cancel</button>`;
+    document.body.appendChild(modal);
+    document.getElementById('classStyleBox').focus();
+
+    modal.querySelector('#clsSaveBtn').onclick = function () {
+        classStyles[className] = document.getElementById('classStyleBox').value.trim();
+        document.body.removeChild(modal);
+        render();
+    };
+    modal.querySelector('#clsCancelBtn').onclick = function () {
+        document.body.removeChild(modal);
+    };
 }
 
 // --- Context Menu ---
