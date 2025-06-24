@@ -735,14 +735,38 @@ pushHistory();
 updateUndoRedoBtns();
 renderClassEditor();
 
+// --- Dark Theme
+let manualTheme = null;
+
 function applySystemTheme() {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (manualTheme) {
+        document.body.setAttribute('data-theme', manualTheme);
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.body.setAttribute('data-theme', 'dark');
     } else {
-        document.body.removeAttribute('data-theme');
+        document.body.setAttribute('data-theme', 'light');
     }
+    updateDarkModeToggleLabel();
+}
+
+function updateDarkModeToggleLabel() {
+    const btn = document.getElementById('darkModeToggle');
+    if (!btn) return;
+    const isDark = document.body.getAttribute('data-theme') === 'dark';
+    btn.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+}
+
+function toggleTheme() {
+    if (document.body.getAttribute('data-theme') === 'dark') {
+        manualTheme = 'light';
+    } else {
+        manualTheme = 'dark';
+    }
+    applySystemTheme();
 }
 // Initial set
 applySystemTheme();
 // Respond to changes
-window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    if (!manualTheme) applySystemTheme();
+});
