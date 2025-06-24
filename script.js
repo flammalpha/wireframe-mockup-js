@@ -149,12 +149,14 @@ function renderElem(obj, parent) {
 
     // Selection
     elem.onclick = function (e) {
+        e.preventDefault();
         e.stopPropagation();
         selectElem(obj.id);
     };
     // Context menu on right-click
     elem.oncontextmenu = function (e) {
-        e.preventDefault(); e.stopPropagation();
+        e.preventDefault();
+        e.stopPropagation();
         if (lockedElems.has(obj.id)) return;
         showCtxMenu(e.pageX, e.pageY, obj.id);
     }
