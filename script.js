@@ -1,9 +1,24 @@
+function escapeHTML(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function displayClassName(cname) {
+    // Only trim for "user-" classes
+    return cname.startsWith('user-') ? cname.slice(5) : cname;
+}
+
 let layout = { id: 'root', type: 'container', children: [], props: { style: 'min-height:80vh;' } };
 let selectedElemId = null;
 let lockedElems = new Set();
 let dragElemId = null;
 let classStyles = {};
 let selectedClassName = null;
+let uniqueElemIdCounter = 0;
 
 // --- History Stacks ---
 let historyStack = [];
@@ -73,7 +88,7 @@ window.addEventListener('keydown', function (e) {
 function cloneElem(obj) {
     let newObj = JSON.parse(JSON.stringify(obj));
     function assignNewIds(o) {
-        o.id = 'e' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+        o.id = generateUniqueElemId();
         if (o.children) o.children.forEach(assignNewIds);
     }
     assignNewIds(newObj);
@@ -138,7 +153,7 @@ function renderElem(obj, parent) {
     } else if (obj.type === 'link') {
         elem = document.createElement('a');
         elem.className = 'wire-elem';
-        elem.textContent = obj.props?.text || 'Link';
+        elem.innerHTML = `<span>${escapeHTML(obj.props?.text || 'Link')}</span>`;
         elem.href = obj.props?.href || '#';
         elem.style.textDecoration = 'underline';
         elem.target = '_blank';
@@ -211,7 +226,7 @@ function removeElem(obj, childId) {
     return null;
 }
 function newElem(type) {
-    let id = 'e' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+    let id = generateUniqueElemId();
     let base = {
         id, type, props: {},
         children: []
@@ -222,6 +237,11 @@ function newElem(type) {
     if (type === 'img') base.props.src = "https://via.placeholder.com/80x40";
     if (type === 'link') { base.props.text = "Link"; base.props.href = "#"; }
     return base;
+}
+
+function generateUniqueElemId() {
+    uniqueElemIdCounter += 1;
+    return 'e' + Date.now() + '-' + uniqueElemIdCounter;
 }
 
 function findParent(obj, id, parent = null) {
@@ -290,8 +310,9 @@ function getBreadcrumbPath(elementId) {
 function styleStringToObj(styleStr = '') {
     const st = {};
     styleStr.split(';').forEach(rule => {
-        let [k, v] = rule.split(':');
-        if (k && v) st[k.trim()] = v.trim();
+        let [k, ...v] = rule.split(':');
+        if (!k || v.length === 0) return;
+        st[k.trim()] = v.join(':').trim();
     });
     return st;
 }
@@ -326,13 +347,13 @@ function updatePropsForm() {
 
     const disabledAttr = isLocked ? 'disabled' : '';
     if (obj.type === 'text' || obj.type === 'button' || obj.type === 'link') {
-        fields += `<label>Text: <input type="text" name="text" value="${obj.props.text || ''} ${disabledAttr}"></label>`;
+        fields += `<label>Text: <input type="text" name="text" value="${escapeHTML(obj.props.text || '')}" ${disabledAttr}></label>`;
     }
     if (obj.type === 'img') {
-        fields += `<label>Src: <input type="text" name="src" value="${obj.props.src || ''} ${disabledAttr}"></label>`;
+        fields += `<label>Src: <input type="text" name="src" value="${escapeHTML(obj.props.src || '')}" ${disabledAttr}></label>`;
     }
     if (obj.type === 'link') {
-        fields += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''} ${disabledAttr}"></label>`;
+        fields += `<label>Href: <input type="text" name="href" value="${escapeHTML(obj.props.href || '')}" ${disabledAttr}></label>`;
     }
     if (obj.id !== 'root') {
         fields += `<div style="margin:7px 0 7px 0;font-size:13px;">
@@ -354,8 +375,8 @@ function updatePropsForm() {
         for (const cname of allClasses) {
             const checked = elementClasses.includes(cname) ? 'checked' : '';
             checkboxes.push(
-                `<label style="margin-right:10px;">
-                  <input type="checkbox" name="clsbox" value="${cname}" ${checked} ${isLocked ? 'disabled' : ''}>${cname}
+                `<label class="cls-checkbox-label">
+                  <input type="checkbox" name="clsbox" value="${escapeHTML(cname)}" ${checked} ${isLocked ? 'disabled' : ''}>${escapeHTML(displayClassName(cname))}
                 </label>`
             );
         }
@@ -374,7 +395,6 @@ function updatePropsForm() {
             if (get('src')) obj.props.src = get('src').value;
             if (get('class')) obj.props.class = get('class').value.trim();
 
-            // Handle class assignment checkbox
             if (e.target.name === "clsbox") {
                 let checked = Array.from(form.querySelectorAll('[name="clsbox"]:checked')).map(x => x.value);
                 obj.props.class = checked.join(' ');
@@ -430,25 +450,23 @@ function renderClassEditor() {
     const classNames = Object.keys(classStyles);
     ul.innerHTML = "";
 
-    // --- Add header and class creation UI at the top ---
     const topDiv = document.createElement('div');
     topDiv.innerHTML = `
         <div style="font-weight:bold; font-size:15px; margin-bottom:8px;">Global Classes</div>
         <input type="text" id="globalAddClassInput" style="width:100px;font-size:13px;margin-right:6px;" placeholder="New class">
-        <button id="globalAddClassBtn" type="button" style="font-size:13px;">Add Class</button>
+        <button id="globalAddClassBtn" type="button" style="font-size:13px;">+</button>
         <span id="addClassError" style="color:#c00;font-size:13px;display:none;margin-left:10px;"></span>
         <hr style="margin:10px 0;">
     `;
     ul.appendChild(topDiv);
 
-    // --- List of class names as selectable ---
     classNames.forEach(cname => {
         const li = document.createElement('li');
         li.style.marginBottom = "10px";
-        li.innerHTML = `
-          <button type="button" class="selectClassBtn" data-cls="${cname}" style="background:${selectedClassName === cname ? '#def' : '#eee'};margin-right:7px;">${cname}</button>
-          <button type="button" class="delClassBtn" data-cls="${cname}" style="color:#a00;">✖</button>
-        `;
+        li.innerHTML = `<div class="classNameListItem">
+          <button type="button" class="selectClassBtn" data-cls="${escapeHTML(cname)}" style="background:${selectedClassName === cname ? '#def' : '#eee'};margin-right:7px;">${escapeHTML(displayClassName(cname))}</button>
+          <button type="button" class="delClassBtn" data-cls="${escapeHTML(cname)}">✖</button>
+        </div>`;
         ul.appendChild(li);
     });
 
@@ -460,25 +478,25 @@ function renderClassEditor() {
                 renderClassPropertiesForm();
             };
         });
-        // --- AddClass logic ---
         const btn = document.getElementById('globalAddClassBtn');
         const input = document.getElementById('globalAddClassInput');
         const error = document.getElementById('addClassError');
         if (btn && input) {
             btn.onclick = function () {
-                const cname = (input.value || '').trim();
-                if (!cname.match(/^[\w\-]+$/)) {
+                let cname = (input.value || '').trim();
+                if (!cname.match(/^[a-zA-Z_][\w\-]*$/)) {
                     error.textContent = 'Invalid class name!';
                     error.style.display = 'inline';
                     return;
                 }
                 if (!cname) return;
-                if (classStyles[cname]) {
+                let fullName = cname.startsWith('user-') ? cname : 'user-' + cname;
+                if (classStyles[fullName]) {
                     error.textContent = 'Class exists!';
                     error.style.display = 'inline';
                     return;
                 }
-                classStyles[cname] = '';
+                classStyles[fullName] = '';
                 input.value = '';
                 error.style.display = 'none';
                 pushHistory();
@@ -512,7 +530,6 @@ function renderClassEditor() {
         }
     };
 
-    // --- Render class property form for the selected class
     renderClassPropertiesForm();
 }
 
@@ -520,7 +537,7 @@ function renderClassPropertiesForm() {
     let form = document.getElementById('classPropertiesEditor');
     if (!form) return;
 
-    let html = `<div id="classTitle">Class Properties` + (selectedClassName ? `: <b>.${selectedClassName}</b>` : ``) + `</div>`
+    let html = `<div id="classTitle">Class Properties` + (selectedClassName ? `: <b>.${escapeHTML(displayClassName(selectedClassName))}</b>` : ``) + `</div>`
     if (!selectedClassName || !(selectedClassName in classStyles)) {
         form.innerHTML = html;
         form.oninput = null;
@@ -543,28 +560,44 @@ function renderClassPropertiesForm() {
 }
 
 function renderStyleFields(st, disabledAttr = '', prefix = '') {
+    const checkbox = (label, name, val) =>
+        `<label style="margin-right:10px;"><input type="checkbox" name="${prefix}${name}" ${val ? 'checked' : ''} ${disabledAttr}> ${label}</label>`;
+    const field = (label, name, value, unit = '', width = 50, type = 'number') =>
+        `<label style="margin-right:16px;">${label}: <input type="${type}" name="${prefix}${name}" value="${value || ''}" style="width:${width}px" ${disabledAttr}>${unit}</label>`;
+    const borderSelectOpts = ["", "solid", "dashed", "dotted", "double", "groove", "ridge", "inset", "outset"]
+        .map(s => `<option value="${s}"${(st['border-style'] === s) ? ' selected' : ''}>${s || 'none'}</option>`).join('');
+    const colorOrDefault = (c, def) => c && c.startsWith('#') ? c : def;
+
     return `
-    <div>
-        <label><input type="checkbox" name="${prefix}bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
-        <label><input type="checkbox" name="${prefix}italic" ${st['font-style'] === 'italic' ? 'checked' : ''} ${disabledAttr}>Italic</label>
-        <label><input type="checkbox" name="${prefix}underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''} ${disabledAttr}>Underline</label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Font size: <input type="number" name="${prefix}fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Text color: <input type="color" name="${prefix}color" value="${st['color'] ? st['color'] : '#000000'}" ${disabledAttr}></label>
-        <label style="margin-left:15px;">BG color: <input type="color" name="${prefix}bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}" ${disabledAttr}></label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Width: <input type="number" name="${prefix}width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:13px;">Height: <input type="number" name="${prefix}height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Margin: <input type="number" name="${prefix}margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Padding: <input type="number" name="${prefix}padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Border: <input type="text" name="${prefix}border" value="${st['border'] || ''}" style="width:90px" ${disabledAttr}></label>
+    <div class="style-fields-grid">
+      <div class="style-row">
+        ${checkbox("Bold", "bold", st['font-weight'] === 'bold')}
+        ${checkbox("Italic", "italic", st['font-style'] === 'italic')}
+        ${checkbox("Underline", "underline", st['text-decoration'] === 'underline')}
+        <label style="margin-left:15px;">Text color: <input type="color" name="${prefix}color" value="${colorOrDefault(st['color'], '#000000')}" ${disabledAttr}></label>
+        <label style="margin-left:15px;">BG: <input type="color" name="${prefix}bgColor" value="${colorOrDefault(st['background-color'], '#ffffff')}" ${disabledAttr}></label>
+      </div>
+      <div>
+        ${field("Font size", "fontSize", st['font-size'] ? parseInt(st['font-size']) : '', 'px')}
+      </div>
+      <div>
+        ${field("Width", "width", st['width'] ? parseInt(st['width']) : '', 'px')}
+        ${field("Height", "height", st['height'] ? parseInt(st['height']) : '', 'px')}
+      </div>
+      <div class="style-row">
+        ${field("Margin", "margin", st['margin'] ? parseInt(st['margin']) : '', 'px')}
+        ${field("Padding", "padding", st['padding'] ? parseInt(st['padding']) : '', 'px')}
+      </div>
+      <div class="style-row">
+        <b>Border:</b>
+        ${field("", "borderWidth", st['border-width'] ? parseInt(st['border-width']) : '', 'px', 44)}
+        <select name="${prefix}borderStyle" ${disabledAttr} style="margin:0 4px;">${borderSelectOpts}</select>
+        <input type="color" name="${prefix}borderColor" value="${colorOrDefault(st['border-color'], '#000000')}" ${disabledAttr}>
+      </div>
     </div>
     `;
 }
+
 function fetchStyleFromFields(form, styleObj, prefix = '') {
     let get = n => form.querySelector(`[name="${prefix}${n}"]`);
     styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
@@ -577,7 +610,9 @@ function fetchStyleFromFields(form, styleObj, prefix = '') {
     styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
     styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
     styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
-    styleObj['border'] = get('border')?.value || '';
+    styleObj['border-width'] = get('borderWidth')?.value ? (get('borderWidth').value + 'px') : '';
+    styleObj['border-style'] = get('borderStyle')?.value || '';
+    styleObj['border-color'] = get('borderColor')?.value || '';
     return styleObj;
 }
 
@@ -699,3 +734,15 @@ document.getElementById("mockup-area").addEventListener("click", function (e) {
 pushHistory();
 updateUndoRedoBtns();
 renderClassEditor();
+
+function applySystemTheme() {
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.setAttribute('data-theme', 'dark');
+    } else {
+        document.body.removeAttribute('data-theme');
+    }
+}
+// Initial set
+applySystemTheme();
+// Respond to changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applySystemTheme);

@@ -145,12 +145,12 @@ html {
     position: static;
     flex-shrink: 0;
     width: 100%;
-    background: #fcfbf8;
-    border-top: 1px solid #ccc;
+    background: #fcfcfc;
+    border-top: 1px solid #e3e7eb;
     border-left: none;
     z-index: 90;
     overflow-y: auto;
-    padding: 7px 15px;
+    padding: 13px 24px;
     font-size: 15px;
     height: auto;
     min-height: 48px;
@@ -159,29 +159,277 @@ html {
     flex-direction: row;
     align-items: flex-start;
     gap: 16px;
+    box-shadow: 0 2px 8px #eee2 inset;
 }
 
-#properties-form {
-    width: 40%;
-    min-width: 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-}
-#classes-form {
-    width: 60%;
-    min-width: 0;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+/* --- Grid styling for style fields in the properties/class forms --- */
+.style-fields-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 18px;
+    max-width: 100%;
 }
 
+.style-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    grid-column: 1 / -1;
+    width: 100%;
+}
+
+@media (max-width: 750px) {
+    .style-fields-grid {
+        grid-template-columns: 1fr;
+        gap: 7px;
+    }
+
+    .style-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+}
+
+.style-row label,
+.style-row input,
+.style-row select {
+    margin-bottom: 0;
+}
+
+/* --- PROPERTIES FORM & CLASS EDITOR GRID --- */
+#properties-form,
+#classPropertiesEditor {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px 22px;
+    align-items: center;
+    background: #f9fafb;
+    border-radius: 11px;
+    padding: 18px 22px;
+    box-shadow: 0 1px 7px #e8eaf29c;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+/* Group titles span all columns */
+#properties-form #propTitle,
+#classPropertiesEditor #classTitle {
+    grid-column: 1/-1;
+    font-size: 18px;
+    font-weight: 600;
+    color: #3759a0;
+    margin-bottom: 0.8em;
+    letter-spacing: 0.03em;
+    margin-top: 0.1em;
+}
+
+/* Label arrangement for grid cells */
+#properties-form label,
+#classPropertiesEditor label {
+    font-size: 15px;
+    color: #424B5A;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 8px 0 0;
+    width: auto;
+    flex-shrink: 0;
+    min-width: 0;
+}
+
+/* Horizontally align all direct div children spanning all columns inside forms */
+#properties-form>div[style*="grid-column:1/3"],
+#classPropertiesEditor>div[style*="grid-column:1/3"] {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    gap: 13px 16px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+/* Make checkboxes and inline fields more compact */
+#properties-form input[type="checkbox"],
+#classPropertiesEditor input[type="checkbox"] {
+    width: 17px;
+    height: 17px;
+    margin-right: 5px;
+    margin-left: 0;
+    accent-color: #219af2;
+}
+
+/* Style selects and color pickers for alignment */
+#properties-form select,
+#classPropertiesEditor select,
+#properties-form input[type="color"],
+#classPropertiesEditor input[type="color"] {
+    margin-left: 4px;
+    min-width: 34px;
+    height: 31px;
+}
+
+#properties-form input[type="text"],
+#properties-form input[type="number"],
+#classPropertiesEditor input[type="text"],
+#classPropertiesEditor input[type="number"] {
+    background: #fff;
+    border: 1px solid #e3e7eb;
+    border-radius: 5px;
+    font-size: 15px;
+    padding: 4px 9px;
+    margin-left: 5px;
+    outline: none;
+    transition: border 0.17s;
+    height: 31px;
+}
+
+#properties-form input[type="color"],
+#classPropertiesEditor input[type="color"] {
+    padding: 0;
+    width: 34px;
+    min-width: 34px;
+    min-height: 31px;
+    border: none;
+}
+
+#properties-form input:focus,
+#classPropertiesEditor input:focus {
+    border: 1.5px solid #2188e0;
+    background: #eef5fc;
+}
+
+#properties-form input[type="checkbox"],
+#classPropertiesEditor input[type="checkbox"] {
+    margin-right: 5px;
+    margin-left: 0;
+    width: 17px;
+    height: 17px;
+    accent-color: #219af2;
+}
+
+#classesCheckboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 9px;
+    align-items: center;
+    margin-top: 3px;
+}
+
+.cls-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: #eef3fa;
+    border: 1px solid #dde4f2;
+    border-radius: 17px;
+    padding: 4px 13px 4px 8px;
+    font-size: 14px;
+    color: #215795;
+    font-weight: 500;
+    transition: background 0.17s, border 0.14s, color 0.10s;
+    cursor: pointer;
+}
+.cls-checkbox-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #219af2;
+    margin: 0 5px 0 0;
+    transition: box-shadow 0.16s;
+}
+.cls-checkbox-label input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 2px #aad7fd88;
+}
+.cls-checkbox-label input[type="checkbox"]:disabled + span {
+    color: #bbb;
+}
+.cls-checkbox-label:hover {
+    background: #def0ff;
+    border-color: #2b9af3;
+    color: #1676cc;
+}
+
+/* Grouping helpers (optionally populated) */
+#properties-form .field-group,
+#classPropertiesEditor .field-group {
+    grid-column: 1/-1;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    margin: 0.6em 0;
+}
+
+.p-row {
+    grid-column: 1/-1;
+    display: flex;
+    flex-direction: row;
+    gap: 18px;
+    align-items: center;
+}
+
+/* .style-row is now properly defined above */
+
+.inline-checkbox-row {
+    grid-column: 1/-1;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+#properties-form select,
+#classPropertiesEditor select {
+    padding: 4px 9px;
+    font-size: 15px;
+    border-radius: 5px;
+    border: 1px solid #e3e7eb;
+    background: #fff;
+    margin-left: 4px;
+    height: 31px;
+}
+
+#properties-form>div,
+#classPropertiesEditor>div {
+    width: 100%;
+}
+
+/* END PROPERTIES FORM GRID */
+
+/* Responsive for grid form */
+@media (max-width: 900px) {
+
+    #properties-form,
+    #classPropertiesEditor {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px 10px;
+        padding: 10px 6px;
+    }
+
+    #properties-form>div[style*="grid-column:1/3"],
+    #classPropertiesEditor>div[style*="grid-column:1/3"] {
+        flex-wrap: wrap;
+        gap: 8px 8px;
+    }
+}
+
+@media (max-width: 600px) {
+
+    #properties-form,
+    #classPropertiesEditor {
+        grid-template-columns: 1fr;
+        padding: 6px 2vw;
+    }
+}
+
+/* --- Rest of layout, sidebar, lists --- */
 #classes-form {
     display: flex;
     flex-direction: row;
-    border-left: 1px solid #eee;
-    padding-left: 15px;
+    border-left: 1px solid #e7ebf1;
+    padding-left: 21px;
     width: auto;
+    gap: 18px;
 }
 
 #classList {
@@ -198,22 +446,40 @@ html {
     box-shadow: 0 1px 2px #dbe6f855;
 }
 
+.classNameListItem {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: nowrap;
+}
+
+/* MODIFIED BEGIN */
 .class-list li {
     display: flex;
+    flex-direction: row;
     align-items: center;
     width: 100%;
     padding: 0 10px;
-    height: 33px;
+    min-height: 33px;
     border-bottom: 1px solid #e0e4e9;
     background: none;
     transition: background 0.2s;
+    gap: 7px;
+    flex-wrap: nowrap;
 }
-.class-list li:last-child {
-    border-bottom: none;
+
+.class-list li>* {
+    margin-bottom: 0 !important;
+    margin-top: 0 !important;
 }
 
 .selectClassBtn {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     height: 29px;
     display: flex;
     align-items: center;
@@ -222,13 +488,13 @@ html {
     outline: none;
     font-size: 15px;
     text-align: left;
-    color: #304266;
     cursor: pointer;
-    padding: 0;
+    padding: 0 6px;
     margin: 0;
     border-radius: 4px;
     transition: background 0.18s;
 }
+
 .selectClassBtn:hover {
     background: #6a86a5;
     color: #1271e7;
@@ -236,12 +502,12 @@ html {
 
 .delClassBtn {
     flex: 0 0 auto;
-    margin-left: 12px;
-    background: #f3f3f9;
-    border: none;
-    color: #c7152e;
+    min-width: 32px;
     width: 29px;
     height: 29px;
+    margin-left: 7px;
+    background: #f3f3f9;
+    border: none;
     border-radius: 50%;
     font-size: 18px;
     display: flex;
@@ -250,32 +516,60 @@ html {
     cursor: pointer;
     transition: background 0.17s, color 0.15s;
 }
+
 .delClassBtn:hover {
     background: #ffe9ec;
     color: #950d1d;
 }
+/* MODIFIED END */
+
+.class-list li:last-child {
+    border-bottom: none;
+}
 
 #classPropertiesEditor {
-    margin-left: 24px;
     flex: 1 1 0;
     min-width: 0;
+    max-width: 400px;
+    display: grid;
+    /* grid properties from above */
+}
+
+#classList input[type="text"] {
+    padding: 5px 11px;
+    border-radius: 5px;
+    border: 1px solid #cad3ed;
+    font-size: 14px;
+}
+
+#globalAddClassBtn {
+    padding: 4px 13px;
+    border-radius: 4px;
+    background: #f0f7ff;
+    border: 1px solid #2b9aef;
+    color: #156ad2;
+    font-weight: bold;
+    transition: background 0.17s, border 0.14s, color 0.12s;
+}
+
+#globalAddClassBtn:hover {
+    background: #e6f1ff;
+    color: #005bb3;
+    border: 1.5px solid #095eae;
+}
+
+.form-inline-group {
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
+    gap: 15px 20px;
+    align-items: center;
+    margin-bottom: 10px;
 }
 
 .propTitle {
     font-weight: bold;
     font-size: 16px;
     margin-bottom: 10px;
-}
-
-#properties-form label {
-    margin-right: 13px;
-}
-
-#properties-form input[type="text"] {
-    width: 90px;
-    margin-left: 3px;
 }
 
 #importBox {
@@ -315,4 +609,209 @@ kbd {
     border-radius: 3px;
     padding: 2px 7px;
 }
+#properties-form {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: 480px;
+}
 
+/* Responsive for properties bar and classes form */
+@media (max-width: 700px) {
+    #properties-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 8px 2vw;
+    }
+
+    #classes-form {
+        padding-left: 8px;
+        gap: 8px;
+    }
+}
+
+/* --- DARK MODE OVERRIDES --- */
+[data-theme="dark"] {
+  /* Base and backgrounds */
+  background: #17181b;
+  color: #eaf1fa;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] html {
+    background: #17181b !important;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #app-container {
+    background: #181b23;
+}
+
+/* Topbar */
+[data-theme="dark"] #topbar {
+    background: #20222b;
+    border-bottom: 1px solid #333846;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #topbar button {
+    background: #23272f;
+    border: 1px solid #525d74;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #topbar button[disabled] {
+    background: #23272f;
+    color: #7c8597;
+    border-color: #303541;
+}
+
+/* Sidebars and toolbox */
+[data-theme="dark"] #sidebar {
+    background: #1d212b;
+    border-right: 1px solid #222637;
+}
+
+[data-theme="dark"] #toolbox .tool {
+    background: #232732;
+    color: #eaf1fa;
+    border: 1px dashed #535766;
+}
+
+[data-theme="dark"] #main {
+    background: #161820;
+}
+
+/* Mockup area */
+[data-theme="dark"] #mockup-area {
+    background: #181b23;
+    border-bottom: 1px solid #242731;
+}
+
+/* Selectable + element styles */
+[data-theme="dark"] .wire-elem {
+    background: rgba(35, 38, 48, 0.8);
+    border: 2px dashed #525d74;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] .selected {
+    border: 2px solid #50aaf3;
+    background: #2d3f53;
+}
+
+/* Context menu */
+[data-theme="dark"] .context-menu {
+    background: #232732;
+    border: 1px solid #526080;
+    color: #e5e9f0;
+    box-shadow: 1px 2px 7px #283352;
+}
+
+/* Properties bar and forms */
+[data-theme="dark"] #properties-bar {
+    background: #20232a;
+    border-top: 1px solid #232942;
+    color: #eaf1fa;
+    box-shadow: 0 2px 8px #23273a inset;
+}
+
+[data-theme="dark"] #properties-form,
+[data-theme="dark"] #classPropertiesEditor {
+    background: #212432;
+    box-shadow: 0 1px 8px #181c2b88;
+}
+
+[data-theme="dark"] #properties-form label,
+[data-theme="dark"] #classPropertiesEditor label {
+    color: #add8ff;
+}
+
+[data-theme="dark"] #properties-form input[type="text"],
+[data-theme="dark"] #properties-form input[type="number"],
+[data-theme="dark"] #classPropertiesEditor input[type="text"],
+[data-theme="dark"] #classPropertiesEditor input[type="number"] {
+    background: #222634;
+    border: 1px solid #384366;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #properties-form input:focus,
+[data-theme="dark"] #classPropertiesEditor input:focus {
+    background: #273448;
+    border-color: #52bdff;
+}
+
+/* Class list & buttons */
+[data-theme="dark"] .class-list li {
+    background: none;
+    border-bottom: 1px solid #273050;
+    color: #dce8fa;
+}
+[data-theme="dark"] .class-list li:last-child {
+    border-bottom: none;
+}
+
+[data-theme="dark"] .selectClassBtn {
+    background: none;
+    color: #cce3fa;
+}
+[data-theme="dark"] .selectClassBtn:hover {
+    background: #22457a;
+    color: #85cfff;
+}
+[data-theme="dark"] .delClassBtn {
+    background: #202a38;
+    color: #b6cadb;
+}
+[data-theme="dark"] .delClassBtn:hover {
+    background: #53171c;
+    color: #ff7a8a;
+}
+
+[data-theme="dark"] .cls-checkbox-label {
+    background: #1c2535;
+    border-color: #233659;
+    color: #7fc8ff;
+}
+[data-theme="dark"] .cls-checkbox-label:hover {
+    background: #284061;
+    border-color: #4eb2ff;
+    color: #bfe3ff;
+}
+[data-theme="dark"] .cls-checkbox-label input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 2px #219af244;
+}
+
+/* Lists and sidebar classes */
+[data-theme="dark"] #classList {
+    background: #212735;
+    border: 1px solid #273050;
+}
+[data-theme="dark"] #classList input[type="text"] {
+    background: #1c2235;
+    color: #d1daf0;
+    border: 1px solid #364262;
+}
+[data-theme="dark"] #globalAddClassBtn {
+    background: #162334;
+    border: 1px solid #289cff;
+    color: #74c8ff;
+}
+[data-theme="dark"] #globalAddClassBtn:hover {
+    background: #1e425e;
+    color: #9fdcff;
+    border: 1.5px solid #37b6ff;
+}
+
+/* Notification */
+[data-theme="dark"] #notif {
+    background: #1084c6;
+    color: #f5faff;
+    box-shadow: 0 4px 22px #16456c99;
+}
+
+/* general tweaks */
+[data-theme="dark"] kbd {
+    background: #273248;
+    color: #c3e2ff;
+}
