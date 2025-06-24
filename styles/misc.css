@@ -1,0 +1,103 @@
+kbd {
+    background: #e3e3e3;
+    border-radius: 3px;
+    padding: 2px 7px;
+}
+
+#notif {
+    position: fixed;
+    right: 16px;
+    top: 14px;
+    min-width: 110px;
+    background: #1c72d2;
+    color: #fff;
+    padding: 5px 18px;
+    border-radius: 9px;
+    font-size: 16px;
+    z-index: 99999;
+    opacity: 0.92;
+    transition: opacity 0.4s;
+    display: none;
+    box-shadow: 0 4px 18px #247ac926;
+    text-align: center;
+}
+
+#importBox {
+    width: 240px;
+    height: 40px;
+    margin-left: 14px;
+    vertical-align: middle;
+    display: none;
+}
+
+#importApply {
+    margin-left: 2px;
+    vertical-align: middle;
+    display: none;
+}
+
+.form-inline-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px 20px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.propTitle {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.resize-handle {
+    transition: background 0.18s;
+}
+
+.resize-handle:hover {
+    background: #0cf;
+}
+
+.resizable-container:hover .resize-handle {
+    display: block;
+}
+
+.resize-handle {
+    display: none;
+}
+
+.resizable-container.selected .resize-handle {
+    display: block !important;
+}
+
+.wire-elem.resizable-container {
+    display: flex;
+    flex-direction: row;
+    /* You can expose controls to toggle row/column if desired */
+    align-items: flex-start;
+    gap: 7px;
+}
+
+.drag-over-left {
+    outline: 2px solid #69f;
+    box-shadow: -3px 0 0 #69f;
+}
+
+.drag-over-right {
+    outline: 2px solid #69f;
+    box-shadow: 3px 0 0 #69f;
+}
+
+.drag-over-top {
+    outline: 2px solid #7cf;
+    box-shadow: 0 -3px 0 #7cf;
+}
+
+.drag-over-bottom {
+    outline: 2px solid #7cf;
+    box-shadow: 0 3px 0 #7cf;
+}
+
+.drag-over {
+    outline: 2px solid #49f;
+}

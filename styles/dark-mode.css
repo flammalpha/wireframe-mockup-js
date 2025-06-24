@@ -1,0 +1,183 @@
+[data-theme="dark"] {
+    background: #17181b;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] body,
+[data-theme="dark"] html {
+    background: #17181b !important;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #app-container {
+    background: #181b23;
+}
+
+[data-theme="dark"] #topbar {
+    background: #20222b;
+    border-bottom: 1px solid #333846;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #topbar button {
+    background: #23272f;
+    border: 1px solid #525d74;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #topbar button[disabled] {
+    background: #23272f;
+    color: #7c8597;
+    border-color: #303541;
+}
+
+[data-theme="dark"] #sidebar {
+    background: #1d212b;
+    border-right: 1px solid #222637;
+}
+
+[data-theme="dark"] #toolbox .tool {
+    background: #232732;
+    color: #eaf1fa;
+    border: 1px dashed #535766;
+}
+
+[data-theme="dark"] #main {
+    background: #161820;
+}
+
+[data-theme="dark"] #mockup-area {
+    background: #181b23;
+    border-bottom: 1px solid #242731;
+}
+
+[data-theme="dark"] .wire-elem {
+    background: rgba(35, 38, 48, 0.8);
+    border: 2px dashed #525d74;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] .selected {
+    border: 2px solid #50aaf3;
+    background: #2d3f53;
+}
+
+[data-theme="dark"] .context-menu {
+    background: #232732;
+    border: 1px solid #526080;
+    color: #e5e9f0;
+    box-shadow: 1px 2px 7px #283352;
+}
+
+[data-theme="dark"] #properties-bar {
+    background: #20232a;
+    border-top: 1px solid #232942;
+    color: #eaf1fa;
+    box-shadow: 0 2px 8px #23273a inset;
+}
+
+[data-theme="dark"] #properties-form,
+[data-theme="dark"] #classPropertiesEditor {
+    background: #212432;
+    box-shadow: 0 1px 8px #181c2b88;
+}
+
+[data-theme="dark"] #properties-form label,
+[data-theme="dark"] #classPropertiesEditor label {
+    color: #add8ff;
+}
+
+[data-theme="dark"] #properties-form input[type="text"],
+[data-theme="dark"] #properties-form input[type="number"],
+[data-theme="dark"] #classPropertiesEditor input[type="text"],
+[data-theme="dark"] #classPropertiesEditor input[type="number"] {
+    background: #222634;
+    border: 1px solid #384366;
+    color: #eaf1fa;
+}
+
+[data-theme="dark"] #properties-form input:focus,
+[data-theme="dark"] #classPropertiesEditor input:focus {
+    background: #273448;
+    border-color: #52bdff;
+}
+
+[data-theme="dark"] .class-list li {
+    background: none;
+    border-bottom: 1px solid #273050;
+    color: #dce8fa;
+}
+
+[data-theme="dark"] .class-list li:last-child {
+    border-bottom: none;
+}
+
+[data-theme="dark"] .selectClassBtn {
+    background: none;
+    color: #cce3fa;
+}
+
+[data-theme="dark"] .selectClassBtn:hover {
+    background: #22457a;
+    color: #85cfff;
+}
+
+[data-theme="dark"] .delClassBtn {
+    background: #202a38;
+    color: #b6cadb;
+}
+
+[data-theme="dark"] .delClassBtn:hover {
+    background: #53171c;
+    color: #ff7a8a;
+}
+
+[data-theme="dark"] .cls-checkbox-label {
+    background: #1c2535;
+    border-color: #233659;
+    color: #7fc8ff;
+}
+
+[data-theme="dark"] .cls-checkbox-label:hover {
+    background: #284061;
+    border-color: #4eb2ff;
+    color: #bfe3ff;
+}
+
+[data-theme="dark"] .cls-checkbox-label input[type="checkbox"]:focus {
+    box-shadow: 0 0 0 2px #219af244;
+}
+
+[data-theme="dark"] #classList {
+    background: #212735;
+    border: 1px solid #273050;
+}
+
+[data-theme="dark"] #classList input[type="text"] {
+    background: #1c2235;
+    color: #d1daf0;
+    border: 1px solid #364262;
+}
+
+[data-theme="dark"] #globalAddClassBtn {
+    background: #162334;
+    border: 1px solid #289cff;
+    color: #74c8ff;
+}
+
+[data-theme="dark"] #globalAddClassBtn:hover {
+    background: #1e425e;
+    color: #9fdcff;
+    border: 1.5px solid #37b6ff;
+}
+
+[data-theme="dark"] #notif {
+    background: #1084c6;
+    color: #f5faff;
+    box-shadow: 0 4px 22px #16456c99;
+}
+
+[data-theme="dark"] kbd {
+    background: #273248;
+    color: #c3e2ff;
+}
