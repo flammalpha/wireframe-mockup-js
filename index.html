@@ -42,13 +42,21 @@
                 </div>
                 <div id="properties-bar">
                     <span style="font-weight: bold;" id="propTitle">Properties</span>
-                    <form id="properties-form" style="margin-top:10px;display:inline-block;"></form>
+                    <form id="properties-form" style="margin-top:10px;display:inline-block;">
+                        <div id="propTitle"></div>
+                        <!-- ...fields will be inserted here... -->
+                    </form>
                 </div>
             </div>
             <!-- Context menu for elements -->
-            <ul class="context-menu" id="ctxMenu">
-                <li onclick="lockSelected()">Lock/Unlock</li>
+            <ul class="context-menu" id="ctxMenuUnlocked">
+                <li onclick="copySelected()">Copy</li>
+                <li onclick="pasteSelected()">Paste</li>
+                <li onclick="lockSelected()">Lock</li>
                 <li onclick="deleteSelected()">Delete</li>
+            </ul>
+            <ul class="context-menu" id="ctxMenuLocked">
+                <li onclick="unlockSelected()">Unlock</li>
             </ul>
         </div>
     </div>

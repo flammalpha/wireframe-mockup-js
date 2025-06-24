@@ -157,8 +157,10 @@ function renderElem(obj, parent) {
     elem.oncontextmenu = function (e) {
         e.preventDefault();
         e.stopPropagation();
-        if (lockedElems.has(obj.id)) return;
-        showCtxMenu(e.pageX, e.pageY, obj.id);
+        if (lockedElems.has(obj.id))
+            showCtxMenuLocked(e.pageX, e.pageY, obj.id);
+        else
+            showCtxMenuUnlocked(e.pageX, e.pageY, obj.id);
     }
 
     // Recursion for containers
@@ -262,6 +264,18 @@ function handleDrop(e, obj) {
 });
 
 // --- PROPERTIES ---
+function getBreadcrumbPath(elementId) {
+    let path = [];
+    let currentId = elementId;
+    while (currentId) {
+        let obj = findElem(layout, currentId);
+        if (!obj) break;
+        let label = (obj.id === 'root') ? 'Root' : (obj.type.charAt(0).toUpperCase() + obj.type.slice(1));
+        path.unshift(label);
+        currentId = findParent(layout, currentId)?.id;
+    }
+    return path.join(' > ');
+}
 function styleStringToObj(styleStr = '') {
     const st = {};
     styleStr.split(';').forEach(rule => {
@@ -287,98 +301,111 @@ function updatePropsForm() {
     }
 
     let form = document.getElementById('properties-form');
-    form.innerHTML = '';
-    if (!selectedElemId) { document.getElementById('propTitle').innerText = 'Properties'; return; }
-    let obj = findElem(layout, selectedElemId);
-    if (!obj) return;
-    document.getElementById('propTitle').innerText = 'Properties: ' + (obj.type.charAt(0).toUpperCase() + obj.type.slice(1));
+    let obj = selectedElemId ? findElem(layout, selectedElemId) : null;
+    const isLocked = obj && lockedElems.has(selectedElemId);
+
+    // --- Breadcrumb title ---
+    let breadcrumb = obj ? 'Properties: ' + getBreadcrumbPath(selectedElemId) : 'Properties';
+    let title = '<div id="propTitle" style="font-weight:bold;font-size:16px;margin-bottom:10px;">' +
+        breadcrumb +
+        '</div>';
+
+    // --- Main fields
+    let fields = '';
+    if (!selectedElemId || !obj) {
+        form.innerHTML = title;
+        return;
+    }
 
     // Main editable props per type (text content, href, src etc)
+    const disabledAttr = isLocked ? 'disabled' : '';
     if (obj.type === 'text' || obj.type === 'button' || obj.type === 'link') {
-        form.innerHTML += `<label>Text: <input type="text" name="text" value="${obj.props.text || ''}"></label>`;
+        fields += `<label>Text: <input type="text" name="text" value="${obj.props.text || ''} ${disabledAttr}"></label>`;
     }
     if (obj.type === 'img') {
-        form.innerHTML += `<label>Src: <input type="text" name="src" value="${obj.props.src || ''}"></label>`;
+        fields += `<label>Src: <input type="text" name="src" value="${obj.props.src || ''} ${disabledAttr}"></label>`;
     }
     if (obj.type === 'link') {
-        form.innerHTML += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''}"></label>`;
+        fields += `<label>Href: <input type="text" name="href" value="${obj.props.href || ''} ${disabledAttr}"></label>`;
     }
 
-    // Style controls
+    // Style controls (as before)
     let st = styleStringToObj(obj.props.style);
-
-    // Boolean style options
-    form.innerHTML += `<div>
-        <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''}>Bold</label>
-        <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''}>Italic</label>
-        <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''}>Underline</label>
+    fields += `<div>
+        <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
+        <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''} ${disabledAttr}>Italic</label>
+        <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''} ${disabledAttr}>Underline</label>
     </div>`;
 
-    // Value-based style options
-    form.innerHTML += `<div style="margin:7px 0;">
-        <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}"></label>
-        <label style="margin-left:15px;">BG color: <input type="color" name="bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}"></label>
+    fields += `<div style="margin:7px 0;">
+        <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}" ${disabledAttr}></label>
+        <label style="margin-left:15px;">BG color: <input type="color" name="bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}" ${disabledAttr}></label>
     </div>
     <div style="margin:7px 0;">
-        <label>Width: <input type="number" name="width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:13px;">Height: <input type="number" name="height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px"> px</label>
+        <label>Width: <input type="number" name="width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:13px;">Height: <input type="number" name="height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px" ${disabledAttr}> px</label>
     </div>
     <div style="margin:7px 0;">
-        <label>Margin: <input type="number" name="margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px"> px</label>
-                <label style="margin-left:15px;">Padding: <input type="number" name="padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:15px;">Border: <input type="text" name="border" value="${st['border'] || ''}" style="width:90px"></label>
+        <label>Margin: <input type="number" name="margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Padding: <input type="number" name="padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Border: <input type="text" name="border" value="${st['border'] || ''}" style="width:90px" ${disabledAttr}></label>
     </div>
     `;
 
-    // Real-time change handler
-    form.oninput = function (e) {
-        let f = e.target;
-        let v = f.type === 'checkbox' ? f.checked : f.value;
-        let styleObj = styleStringToObj(obj.props.style);
+    // --- Set the full form with title at the top
+    form.innerHTML = title + fields;
 
-        // Update boolean styles
-        styleObj['font-weight'] = form.bold.checked ? 'bold' : '';
-        styleObj['font-style'] = form.italic.checked ? 'italic' : '';
-        styleObj['text-decoration'] = form.underline.checked ? 'underline' : '';
+    // Only enable editing when not locked
+    if (!isLocked) {
+        // --- Hook up input events as before
+        form.oninput = function (e) {
+            // ... rest of function unchanged ...
+            // Use form.querySelector instead of form.fieldName, as form is a div now
+            let get = n => form.querySelector(`[name="${n}"]`);
+            let styleObj = styleStringToObj(obj.props.style);
 
-        // Update value-based styles
-        styleObj['font-size'] = form.fontSize.value ? (form.fontSize.value + 'px') : '';
-        styleObj['color'] = form.color.value || '';
-        styleObj['background-color'] = form.bgColor.value || '';
-        styleObj['width'] = form.width.value ? (form.width.value + 'px') : '';
-        styleObj['height'] = form.height.value ? (form.height.value + 'px') : '';
-        styleObj['margin'] = form.margin.value ? (form.margin.value + 'px') : '';
-        styleObj['padding'] = form.padding.value ? (form.padding.value + 'px') : '';
-        styleObj['border'] = form.border.value || '';
+            // Update boolean styles
+            styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
+            styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
+            styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
 
-        obj.props.style = styleObjToString(styleObj);
+            // Update value-based styles
+            styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
+            styleObj['color'] = get('color')?.value || '';
+            styleObj['background-color'] = get('bgColor')?.value || '';
+            styleObj['width'] = get('width')?.value ? (get('width').value + 'px') : '';
+            styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
+            styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
+            styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
+            styleObj['border'] = get('border')?.value || '';
 
-        // Still handle text/href/src
-        if (form.text) obj.props.text = form.text.value;
-        if (form.href) obj.props.href = form.href.value;
-        if (form.src) obj.props.src = form.src.value;
+            obj.props.style = styleObjToString(styleObj);
 
-        pushHistory();
-        render();
-        updatePropsForm();
+            // Still handle text/href/src
+            if (get('text')) obj.props.text = get('text').value;
+            if (get('href')) obj.props.href = get('href').value;
+            if (get('src')) obj.props.src = get('src').value;
+
+            pushHistory();
+            render();
+            updatePropsForm();
+        }
+    } else {
+        form.oninput = null;
     }
 
-    // --- Restore focus
+    // --- Restore focus (unchanged) ---
     if (fieldInfo) {
         let toFocus = form.querySelector(`[name="${fieldInfo.name}"]`);
         if (toFocus) {
             toFocus.focus();
             if (toFocus.setSelectionRange && fieldInfo.selectionStart != null) {
                 setTimeout(() => {
-                    if (
-                        toFocus.type === "number" &&
-                        fieldInfo.selectionStart === fieldInfo.selectionEnd &&
-                        fieldInfo.selectionStart === 0
-                    ) {
+                    if (toFocus.type === "number") {
                         let len = (toFocus.value || '').length;
                         toFocus.setSelectionRange(len, len);
-                    } else {
+                    } else if (toFocus.setSelectionRange && fieldInfo.selectionStart != null) {
                         toFocus.setSelectionRange(fieldInfo.selectionStart, fieldInfo.selectionEnd);
                     }
                 }, 0);
@@ -388,22 +415,39 @@ function updatePropsForm() {
 }
 
 // --- Context Menu ---
-function showCtxMenu(x, y, elemId) {
-    let menu = document.getElementById('ctxMenu');
+function showCtxMenuUnlocked(x, y, elemId) {
+    let menu = document.getElementById('ctxMenuUnlocked');
     menu.style.display = 'block';
     menu.style.left = x + 'px';
     menu.style.top = y + 'px';
     selectedElemId = elemId;
     render();
 }
-document.body.onclick = () => { document.getElementById('ctxMenu').style.display = 'none'; }
+function showCtxMenuLocked(x, y, elemId) {
+    let menu = document.getElementById('ctxMenuLocked');
+    menu.style.display = 'block';
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+    selectedElemId = elemId;
+    render();
+}
+document.body.onclick = () => {
+    document.getElementById('ctxMenuLocked').style.display = 'none';
+    document.getElementById('ctxMenuUnlocked').style.display = 'none';
+}
 function lockSelected() {
     if (!selectedElemId) return;
     pushHistory();
-    if (lockedElems.has(selectedElemId)) lockedElems.delete(selectedElemId);
-    else lockedElems.add(selectedElemId);
+    if (!lockedElems.has(selectedElemId)) lockedElems.add(selectedElemId);
     render();
-    document.getElementById('ctxMenu').style.display = 'none';
+    document.getElementById('ctxMenuUnlocked').style.display = 'none';
+}
+function unlockSelected() {
+    if (!selectedElemId) return;
+    pushHistory();
+    if (lockedElems.has(selectedElemId)) lockedElems.delete(selectedElemId);
+    render();
+    document.getElementById('ctxMenuLocked').style.display = 'none';
 }
 function deleteSelected() {
     if (!selectedElemId) return;
