@@ -33,20 +33,38 @@ body {
     cursor: grab;
 }
 
-#exportImport {
-    position: absolute;
-    left: 10px;
-    bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
 #main {
     flex: 1;
     display: flex;
     flex-direction: column;
     min-width: 0;
+}
+
+#topbar {
+    display: flex;
+    flex-direction: row;
+    padding: 8px 16px;
+    gap: 8px;
+    align-items: center;
+    background: #f6f7fa;
+    border-bottom: 1px solid #d5d5d5;
+    height: 44px;
+    font-size: 15px;
+    position: relative;
+    z-index: 1;
+}
+
+#topbar button {
+    padding: 5px 13px;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+    background: #fff;
+    cursor: pointer;
+}
+
+#topbar button[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 #mockup-area {
@@ -113,7 +131,25 @@ body {
 }
 
 #importBox {
-    width: 135px;
+    width: 240px;
     height: 40px;
     display: none;
+}
+
+#notif {
+    position: fixed;
+    right: 16px;
+    top: 14px;
+    min-width: 110px;
+    background: #1c72d2;
+    color: #fff;
+    padding: 5px 18px;
+    border-radius: 9px;
+    font-size: 16px;
+    z-index: 99999;
+    opacity: 0.92;
+    transition: opacity 0.4s;
+    display: none;
+    box-shadow: 0 4px 18px #247ac926;
+    text-align: center;
 }

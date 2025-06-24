@@ -1,44 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Wireframe Mockup Tool</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
-</head>
-<body>
-<div id="app-container">
-  <div id="sidebar">
-    <div id="toolbox">
-      <div class="tool" draggable="true" data-type="text">Text</div>
-      <div class="tool" draggable="true" data-type="button">Button</div>
-      <div class="tool" draggable="true" data-type="img">IMG</div>
-      <div class="tool" draggable="true" data-type="link">&lt;Link&gt;</div>
-      <div class="tool" draggable="true" data-type="container">Container</div>
-    </div>
-    <div id="exportImport">
-      <button onclick="exportLayout()">export</button>
-      <button onclick="showImportBox()">import</button>
-      <textarea id="importBox" placeholder="Paste JSON..."></textarea>
-      <button id="importApply" style="display:none;margin-top:2px;">Apply</button>
-    </div>
-  </div>
-  <div id="main">
-    <div id="mockup-area"
-         ondragover="event.preventDefault()"
-         ondrop="handleDrop(event)">
-    </div>
-    <div id="properties-bar">
-      <span style="font-weight: bold;" id="propTitle">Properties</span>
-      <form id="properties-form" style="margin-top:10px;display:inline-block;"></form>
-    </div>
-  </div>
 
-  <!-- Context menu for elements -->
-  <ul class="context-menu" id="ctxMenu">
-    <li onclick="lockSelected()">Lock/Unlock</li>
-    <li onclick="deleteSelected()">Delete</li>
-  </ul>
-</div>
+<head>
+    <meta charset="UTF-8">
+    <title>Wireframe Mockup Tool</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+</head>
+
+<body>
+    <div id="notif"></div>
+    <div id="app-container" style="flex-direction:column">
+        <div id="topbar">
+            <button id="undoBtn" onclick="undoAction()" disabled>Undo</button>
+            <button id="redoBtn" onclick="redoAction()" disabled>Redo</button>
+            <span style="margin:0 22px 0 17px;color:#888;">|</span>
+            <button onclick="exportLayout()">Export</button>
+            <button onclick="showImportBox()">Import</button>
+            <textarea id="importBox" placeholder="Paste JSON..."
+                style="vertical-align:middle;display:none;margin-left:14px;"></textarea>
+            <button id="importApply" style="display:none;margin-left:2px;vertical-align:middle;">Apply</button>
+            <span style="margin-left:32px;color:#888;">
+                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+Z</kbd> /
+                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+Y</kbd> /
+                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+C</kbd> /
+                <kbd style="background:#e3e3e3;border-radius:3px;padding:2px 7px;">Ctrl+V</kbd>
+            </span>
+        </div>
+        <div style="display:flex; flex:1; min-height:0;">
+            <div id="sidebar">
+                <div id="toolbox">
+                    <div class="tool" draggable="true" data-type="text">Text</div>
+                    <div class="tool" draggable="true" data-type="button">Button</div>
+                    <div class="tool" draggable="true" data-type="img">IMG</div>
+                    <div class="tool" draggable="true" data-type="link">&lt;Link&gt;</div>
+                    <div class="tool" draggable="true" data-type="container">Container</div>
+                </div>
+            </div>
+            <div id="main">
+                <div id="mockup-area">
+                </div>
+                <div id="properties-bar">
+                    <span style="font-weight: bold;" id="propTitle">Properties</span>
+                    <form id="properties-form" style="margin-top:10px;display:inline-block;"></form>
+                </div>
+            </div>
+            <!-- Context menu for elements -->
+            <ul class="context-menu" id="ctxMenu">
+                <li onclick="lockSelected()">Lock/Unlock</li>
+                <li onclick="deleteSelected()">Delete</li>
+            </ul>
+        </div>
+    </div>
 </body>
+
 </html>
