@@ -80,6 +80,7 @@ function cloneElem(obj) {
     return newObj;
 }
 function doCopy() {
+    hideCtxMenu();
     if (!selectedElemId || selectedElemId === 'root') { showNotif('Select something to copy!'); return; }
     let elem = findElem(layout, selectedElemId);
     if (!elem) return;
@@ -87,6 +88,7 @@ function doCopy() {
     showNotif('Copied!');
 }
 function doPaste() {
+    hideCtxMenu();
     if (!clipboardElem) { showNotif('Clipboard empty'); return; }
     if (!selectedElemId) { showNotif('Select parent!'); return; }
     let parent = findParent(layout, selectedElemId);
@@ -340,26 +342,7 @@ function updatePropsForm() {
     }
 
     let st = styleStringToObj(obj.props.style);
-    fields += `<div>
-        <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
-        <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''} ${disabledAttr}>Italic</label>
-        <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''} ${disabledAttr}>Underline</label>
-    </div>`;
-    fields += `<div style="margin:7px 0;">
-        <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}" ${disabledAttr}></label>
-        <label style="margin-left:15px;">BG color: <input type="color" name="bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}" ${disabledAttr}></label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Width: <input type="number" name="width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:13px;">Height: <input type="number" name="height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Margin: <input type="number" name="margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Padding: <input type="number" name="padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px" ${disabledAttr}> px</label>
-        <label style="margin-left:15px;">Border: <input type="text" name="border" value="${st['border'] || ''}" style="width:90px" ${disabledAttr}></label>
-    </div>
-    `;
+    fields += renderStyleFields(st, disabledAttr);
 
     form.innerHTML = title + fields;
 
@@ -383,19 +366,7 @@ function updatePropsForm() {
             let get = n => form.querySelector(`[name="${n}"]`);
             let styleObj = styleStringToObj(obj.props.style);
 
-            styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
-            styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
-            styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
-
-            styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
-            styleObj['color'] = get('color')?.value || '';
-            styleObj['background-color'] = get('bgColor')?.value || '';
-            styleObj['width'] = get('width')?.value ? (get('width').value + 'px') : '';
-            styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
-            styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
-            styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
-            styleObj['border'] = get('border')?.value || '';
-
+            fetchStyleFromFields(form, styleObj);
             obj.props.style = styleObjToString(styleObj);
 
             if (get('text')) obj.props.text = get('text').value;
@@ -548,7 +519,7 @@ function renderClassEditor() {
 function renderClassPropertiesForm() {
     let form = document.getElementById('classPropertiesEditor');
     if (!form) return;
-    
+
     let html = `<div id="classTitle">Class Properties` + (selectedClassName ? `: <b>.${selectedClassName}</b>` : ``) + `</div>`
     if (!selectedClassName || !(selectedClassName in classStyles)) {
         form.innerHTML = html;
@@ -557,48 +528,57 @@ function renderClassPropertiesForm() {
     }
 
     let st = styleStringToObj(classStyles[selectedClassName]);
-    html += `<div>
-        <label><input type="checkbox" name="bold" ${st['font-weight'] === 'bold' ? 'checked' : ''}>Bold</label>
-        <label><input type="checkbox" name="italic" ${st['font-style'] === 'italic' ? 'checked' : ''}>Italic</label>
-        <label><input type="checkbox" name="underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''}>Underline</label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Font size: <input type="number" name="fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:15px;">Text color: <input type="color" name="color" value="${st['color'] ? st['color'] : '#000000'}"></label>
-        <label style="margin-left:15px;">BG color: <input type="color" name="bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}"></label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Width: <input type="number" name="width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:13px;">Height: <input type="number" name="height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px"> px</label>
-    </div>
-    <div style="margin:7px 0;">
-        <label>Margin: <input type="number" name="margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:15px;">Padding: <input type="number" name="padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px"> px</label>
-        <label style="margin-left:15px;">Border: <input type="text" name="border" value="${st['border'] || ''}" style="width:90px"></label>
-    </div>
-    `;
+    html += renderStyleFields(st);
 
     form.innerHTML = html;
 
     form.oninput = function (e) {
-        let get = n => form.querySelector(`[name="${n}"]`);
         let styleObj = styleStringToObj(classStyles[selectedClassName]);
-        styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
-        styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
-        styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
-        styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
-        styleObj['color'] = get('color')?.value || '';
-        styleObj['background-color'] = get('bgColor')?.value || '';
-        styleObj['width'] = get('width')?.value ? (get('width').value + 'px') : '';
-        styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
-        styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
-        styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
-        styleObj['border'] = get('border')?.value || '';
+        fetchStyleFromFields(form, styleObj);
         classStyles[selectedClassName] = styleObjToString(styleObj);
         pushHistory();
         render();
         renderClassEditor();
     };
+}
+
+function renderStyleFields(st, disabledAttr = '', prefix = '') {
+    return `
+    <div>
+        <label><input type="checkbox" name="${prefix}bold" ${st['font-weight'] === 'bold' ? 'checked' : ''} ${disabledAttr}>Bold</label>
+        <label><input type="checkbox" name="${prefix}italic" ${st['font-style'] === 'italic' ? 'checked' : ''} ${disabledAttr}>Italic</label>
+        <label><input type="checkbox" name="${prefix}underline" ${st['text-decoration'] === 'underline' ? 'checked' : ''} ${disabledAttr}>Underline</label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Font size: <input type="number" name="${prefix}fontSize" value="${st['font-size'] ? parseInt(st['font-size']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Text color: <input type="color" name="${prefix}color" value="${st['color'] ? st['color'] : '#000000'}" ${disabledAttr}></label>
+        <label style="margin-left:15px;">BG color: <input type="color" name="${prefix}bgColor" value="${st['background-color'] ? st['background-color'] : '#ffffff'}" ${disabledAttr}></label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Width: <input type="number" name="${prefix}width" value="${st['width'] ? parseInt(st['width']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:13px;">Height: <input type="number" name="${prefix}height" value="${st['height'] ? parseInt(st['height']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+    </div>
+    <div style="margin:7px 0;">
+        <label>Margin: <input type="number" name="${prefix}margin" value="${st['margin'] ? parseInt(st['margin']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Padding: <input type="number" name="${prefix}padding" value="${st['padding'] ? parseInt(st['padding']) : ''}" style="width:50px" ${disabledAttr}> px</label>
+        <label style="margin-left:15px;">Border: <input type="text" name="${prefix}border" value="${st['border'] || ''}" style="width:90px" ${disabledAttr}></label>
+    </div>
+    `;
+}
+function fetchStyleFromFields(form, styleObj, prefix = '') {
+    let get = n => form.querySelector(`[name="${prefix}${n}"]`);
+    styleObj['font-weight'] = get('bold')?.checked ? 'bold' : '';
+    styleObj['font-style'] = get('italic')?.checked ? 'italic' : '';
+    styleObj['text-decoration'] = get('underline')?.checked ? 'underline' : '';
+    styleObj['font-size'] = get('fontSize')?.value ? (get('fontSize').value + 'px') : '';
+    styleObj['color'] = get('color')?.value || '';
+    styleObj['background-color'] = get('bgColor')?.value || '';
+    styleObj['width'] = get('width')?.value ? (get('width').value + 'px') : '';
+    styleObj['height'] = get('height')?.value ? (get('height').value + 'px') : '';
+    styleObj['margin'] = get('margin')?.value ? (get('margin').value + 'px') : '';
+    styleObj['padding'] = get('padding')?.value ? (get('padding').value + 'px') : '';
+    styleObj['border'] = get('border')?.value || '';
+    return styleObj;
 }
 
 function traverseElems(obj, cb) {
@@ -629,9 +609,15 @@ function hideCtxMenu() {
     document.getElementById('ctxMenuLocked').style.display = 'none';
     document.getElementById('ctxMenuUnlocked').style.display = 'none';
 }
-document.body.onclick = () => {
-    hideCtxMenu();
-}
+document.addEventListener('mousedown', function (e) {
+    const ctxMenus = [,
+        document.getElementById('ctxMenuLocked'),
+        document.getElementById('ctxMenuUnlocked')
+    ];
+    if (!ctxMenus.some(menu => menu.contains(e.target))) {
+        hideCtxMenu();
+    }
+})
 function isElemLockedOrAncestorLocked(elemId) {
     let curr = elemId;
     while (curr) {

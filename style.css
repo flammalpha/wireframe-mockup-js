@@ -192,6 +192,67 @@ html {
     list-style: none;
     display: flex;
     flex-direction: column;
+    border-radius: 7px;
+    background: #f8fafd;
+    border: 1px solid #e2e6ed;
+    box-shadow: 0 1px 2px #dbe6f855;
+}
+
+.class-list li {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0 10px;
+    height: 33px;
+    border-bottom: 1px solid #e0e4e9;
+    background: none;
+    transition: background 0.2s;
+}
+.class-list li:last-child {
+    border-bottom: none;
+}
+
+.selectClassBtn {
+    flex: 1 1 auto;
+    height: 29px;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 15px;
+    text-align: left;
+    color: #304266;
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    border-radius: 4px;
+    transition: background 0.18s;
+}
+.selectClassBtn:hover {
+    background: #6a86a5;
+    color: #1271e7;
+}
+
+.delClassBtn {
+    flex: 0 0 auto;
+    margin-left: 12px;
+    background: #f3f3f9;
+    border: none;
+    color: #c7152e;
+    width: 29px;
+    height: 29px;
+    border-radius: 50%;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.17s, color 0.15s;
+}
+.delClassBtn:hover {
+    background: #ffe9ec;
+    color: #950d1d;
 }
 
 #classPropertiesEditor {
@@ -254,3 +315,4 @@ kbd {
     border-radius: 3px;
     padding: 2px 7px;
 }
+
