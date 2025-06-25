@@ -50,54 +50,62 @@ kbd {
     margin-bottom: 10px;
 }
 
-.resize-handle {
-    transition: background 0.18s;
+.drop-indicator {
+    pointer-events: none;
 }
 
-.resize-handle:hover {
-    background: #0cf;
+.drop-indicator-left {
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 4px;
+    background: #2196f3cc;
+    border-radius: 2px 0 0 2px;
 }
 
-.resizable-container:hover .resize-handle {
-    display: block;
+.drop-indicator-right {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: #2196f3cc;
+    border-radius: 0 2px 2px 0;
 }
 
-.resize-handle {
+.drop-indicator-top {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 4px;
+    background: #2196f3cc;
+    border-radius: 2px 2px 0 0;
+}
+
+.drop-indicator-bottom {
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 4px;
+    background: #2196f3cc;
+    border-radius: 0 0 2px 2px;
+}
+
+.context-menu {
+    position: absolute;
+    background: #fff;
+    border: 1px solid #aaa;
+    z-index: 200 !important;
+    box-shadow: 1px 2px 4px #bbb;
     display: none;
+    font-size: 14px;
 }
 
-.resizable-container.selected .resize-handle {
-    display: block !important;
+.context-menu li {
+    list-style: none;
+    padding: 5px 15px;
+    cursor: pointer;
 }
 
-.wire-elem.resizable-container {
-    display: flex;
-    flex-direction: row;
-    /* You can expose controls to toggle row/column if desired */
-    align-items: flex-start;
-    gap: 7px;
-}
-
-.drag-over-left {
-    outline: 2px solid #69f;
-    box-shadow: -3px 0 0 #69f;
-}
-
-.drag-over-right {
-    outline: 2px solid #69f;
-    box-shadow: 3px 0 0 #69f;
-}
-
-.drag-over-top {
-    outline: 2px solid #7cf;
-    box-shadow: 0 -3px 0 #7cf;
-}
-
-.drag-over-bottom {
-    outline: 2px solid #7cf;
-    box-shadow: 0 3px 0 #7cf;
-}
-
-.drag-over {
-    outline: 2px solid #49f;
+.context-menu li:hover {
+    background: #f0f0ff;
 }

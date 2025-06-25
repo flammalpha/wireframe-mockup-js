@@ -9,38 +9,53 @@
     color: #111 !important;
 }
 
+#mockup-area * {
+    border: 2px dashed #bbb;
+    padding: 6px 12px;
+    box-sizing: border-box;
+}
+
 .wire-elem {
     position: relative;
     min-width: 40px;
     min-height: 22px;
-    border: 2px dashed #bbb;
-    padding: 6px 12px;
     margin: 5px;
     cursor: move;
     background: rgba(255, 255, 255, 0.8);
+    box-sizing: border-box;
+    padding: 6px 12px;
+    border: 2px dashed #bbb;
 }
 
-.selected {
-    border: 2px solid #2b9af3;
+.wire-elem.selected {
+    border: 2px solid #2b9af3 !important;
     background: #e0f2ff;
 }
 
-.context-menu {
-    position: absolute;
-    background: #fff;
-    border: 1px solid #aaa;
-    z-index: 200 !important;
-    box-shadow: 1px 2px 4px #bbb;
+.resize-handle {
+    transition: background 0.18s;
+}
+
+.resize-handle:hover {
+    background: #0cf;
+}
+
+.resizable-container:hover .resize-handle {
+    display: block;
+}
+
+.resize-handle {
     display: none;
-    font-size: 14px;
 }
 
-.context-menu li {
-    list-style: none;
-    padding: 5px 15px;
-    cursor: pointer;
+.resizable-container.selected .resize-handle {
+    display: block !important;
 }
 
-.context-menu li:hover {
-    background: #f0f0ff;
+.wire-elem.resizable-container {
+    display: flex;
+    flex-direction: row;
+    /* You can expose controls to toggle row/column if desired */
+    align-items: flex-start;
+    gap: 7px;
 }

@@ -46,17 +46,6 @@
     background: #161820;
 }
 
-[data-theme="dark"] .wire-elem {
-    background: rgba(35, 38, 48, 0.8);
-    border: 2px dashed #525d74;
-    color: #eaf1fa;
-}
-
-[data-theme="dark"] .selected {
-    border: 2px solid #50aaf3;
-    background: #2d3f53;
-}
-
 [data-theme="dark"] .context-menu {
     background: #232732;
     border: 1px solid #526080;
