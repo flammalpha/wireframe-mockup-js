@@ -74,23 +74,10 @@ function updatePropsForm() {
 
     if (obj.type === 'container' || obj.id === 'root') {
         fields += `
-        <div>
-            <label>Display:
-                <select name="displayStyle" ${disabledAttr}>
-                    <option value="block"${st['display'] === 'block' || !st['display'] ? ' selected' : ''}>Block</option>
-                    <option value="flex"${st['display'] === 'flex' ? ' selected' : ''}>Flex</option>
-                </select>
-            </label>
-        </div>
-        <div>
-            <label>Flex Direction:
-                <select name="flexDirection" ${disabledAttr} ${st['display'] === 'flex' ? '' : 'disabled'}>
-                    <option value="row"${st['flex-direction'] === 'row' ? ' selected' : ''}>Row</option>
-                    <option value="column"${st['flex-direction'] === 'column' ? ' selected' : ''}>Column</option>
-                </select>
-            </label>
-        </div>
-    `;
+      <div class="style-row">
+            ${renderDisplayFlexFields(st, disabledAttr)}
+      </div>
+        `;
     }
 
     fields += renderStyleFields(st, disabledAttr);
@@ -161,7 +148,6 @@ function updatePropsForm() {
         }
     }
 }
-
 /**
  * Returns a readable breadcrumb path for a given element ID in the layout tree.
  * @param {string} elementId - The ID of the element.
@@ -192,6 +178,10 @@ function renderStyleFields(st, disabledAttr = '', prefix = '') {
         `<label style="margin-right:10px;"><input type="checkbox" name="${prefix}${name}" ${val ? 'checked' : ''} ${disabledAttr}> ${label}</label>`;
     const field = (label, name, value, unit = '', width = 50, type = 'number') =>
         `<label style="margin-right:16px;">${label}: <input type="${type}" name="${prefix}${name}" value="${value || ''}" style="width:${width}px" ${disabledAttr}>${unit}</label>`;
+    const select = (label, name, options, value, extra = '', width = 70) =>
+        `<label style="margin-right:16px;">${label}: <select name="${prefix}${name}" style="width:${width}px" ${disabledAttr} ${extra}>${
+            options.map(opt => `<option value="${opt.value}"${opt.value === value ? ' selected' : ''}>${opt.label}</option>`).join('')
+        }</select></label>`;
     const borderSelectOpts = ["", "solid", "dashed", "dotted", "double", "groove", "ridge", "inset", "outset"]
         .map(s => `<option value="${s}"${(st['border-style'] === s) ? ' selected' : ''}>${s || 'none'}</option>`).join('');
     const colorOrDefault = (c, def) => c && c.startsWith('#') ? c : def;
@@ -223,6 +213,36 @@ function renderStyleFields(st, disabledAttr = '', prefix = '') {
         <input type="color" name="${prefix}borderColor" value="${colorOrDefault(st['border-color'], '#000000')}" ${disabledAttr}>
       </div>
     </div>
+    `;
+}
+
+/**
+ * Helper to render display/flexDirection as label+select fields
+ * @param {Object} st
+ * @param {string} [disabledAttr='']
+ */
+function renderDisplayFlexFields(st, disabledAttr = '') {
+    const displayOptions = [
+        {label: 'Block', value: 'block'},
+        {label: 'Flex', value: 'flex'}
+    ];
+    const flexDirOptions = [
+        {label: 'Row', value: 'row'},
+        {label: 'Column', value: 'column'}
+    ];
+    return `
+      <label style="margin-right:20px;">
+        Display:
+        <select name="displayStyle" ${disabledAttr} style="width:70px">
+          ${displayOptions.map(opt => `<option value="${opt.value}"${st['display'] === opt.value || (!st['display'] && opt.value === 'block') ? ' selected' : ''}>${opt.label}</option>`).join('')}
+        </select>
+      </label>
+      <label>
+        Flex Direction:
+        <select name="flexDirection" ${(st['display'] === 'flex' ? '' : 'disabled')} ${disabledAttr} style="width:80px">
+          ${flexDirOptions.map(opt => `<option value="${opt.value}"${st['flex-direction'] === opt.value ? ' selected' : ''}>${opt.label}</option>`).join('')}
+        </select>
+      </label>
     `;
 }
 

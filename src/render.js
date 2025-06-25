@@ -132,8 +132,13 @@ function renderElem(obj, parent) {
  */
 function render() {
     let area = document.getElementById('mockup-area');
-    area.innerHTML = '';
-    renderElem(layout, area);
+    // Use Shadow DOM to isolate styles
+    if (!area.shadowRoot) {
+        area.attachShadow({mode: 'open'});
+    }
+    const shadow = area.shadowRoot;
+    shadow.innerHTML = '';
+    renderElem(layout, shadow);
     renderClassEditor();
 }
 

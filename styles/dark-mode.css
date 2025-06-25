@@ -46,11 +46,6 @@
     background: #161820;
 }
 
-[data-theme="dark"] #mockup-area {
-    background: #181b23;
-    border-bottom: 1px solid #242731;
-}
-
 [data-theme="dark"] .wire-elem {
     background: rgba(35, 38, 48, 0.8);
     border: 2px dashed #525d74;
@@ -105,7 +100,7 @@
 [data-theme="dark"] .class-list li {
     background: none;
     border-bottom: 1px solid #273050;
-    color: #dce8fa;
+    color: #525b69;
 }
 
 [data-theme="dark"] .class-list li:last-child {
@@ -114,7 +109,7 @@
 
 [data-theme="dark"] .selectClassBtn {
     background: none;
-    color: #cce3fa;
+    color: #4f545a;
 }
 
 [data-theme="dark"] .selectClassBtn:hover {
