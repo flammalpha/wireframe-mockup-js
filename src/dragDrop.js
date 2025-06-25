@@ -1,4 +1,16 @@
-
+/**
+ * Handles drop events for draggable UI elements or components.
+ * Supports both toolbox-to-layout and element-to-element drops, adjusting
+ * stacking direction and sizes when needed. Horizontal (left/right) drops
+ * configure flex row, vertical (top/bottom) configure flex column. Prevents dropping
+ * into locked elements. Maintains history for undo/redo.
+ *
+ * @param {DragEvent} e - The drag event.
+ * @param {Object} obj - The layout element object that is the drop target.
+ * @property {string} obj.id - Unique identifier for the layout element.
+ * @property {Array<Object>} obj.children - Array of child element objects.
+ * @property {Object} obj.props - Props associated with the layout element.
+ */
 function handleDrop(e, obj) {
     e.preventDefault();
     e.stopPropagation();
